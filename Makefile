@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= ccr.ccs.tencentyun.com/codis/codis-operator:latest
 
-all: test manager
+all: manager
 
 # Run tests
 test: generate fmt vet manifests
