@@ -5,6 +5,94 @@ metadata:
     controller-tools.k8s.io: "1.0"
   name: codis-operator-system
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: codisclusters.codis.k8s.io
+spec:
+  group: codis.k8s.io
+  names:
+    kind: CodisCluster
+    plural: codisclusters
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          type: string
+        kind:
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            clusterName:
+              type: string
+            codisDashboard:
+              properties:
+                replicas:
+                  format: int32
+                  type: integer
+              required:
+              - replicas
+              type: object
+            codisProxy:
+              properties:
+                replicas:
+                  format: int32
+                  type: integer
+              required:
+              - replicas
+              type: object
+            codisServer:
+              properties:
+                replicas:
+                  format: int32
+                  type: integer
+              required:
+              - replicas
+              type: object
+            schedulerName:
+              type: string
+          type: object
+        status:
+          properties:
+            codisDashboard:
+              properties:
+                phase:
+                  type: string
+                statefulSet:
+                  type: object
+              type: object
+            codisProxy:
+              properties:
+                deployment:
+                  type: object
+                phase:
+                  type: string
+              type: object
+            codisServer:
+              properties:
+                phase:
+                  type: string
+                statefulSet:
+                  type: object
+              type: object
+          type: object
+      required:
+      - spec
+      - status
+  version: v1alpha1
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -162,90 +250,3 @@ spec:
         secret:
           defaultMode: 420
           secretName: codis-operator-webhook-server-secret
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  creationTimestamp: null
-  labels:
-    controller-tools.k8s.io: "1.0"
-  name: codisclusters.codis.k8s.io
-spec:
-  group: codis.k8s.io
-  names:
-    kind: CodisCluster
-    plural: codisclusters
-  scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      properties:
-        apiVersion:
-          type: string
-        kind:
-          type: string
-        metadata:
-          type: object
-        spec:
-          properties:
-            clusterName:
-              type: string
-            codisDashboard:
-              properties:
-                replicas:
-                  format: int32
-                  type: integer
-              required:
-              - replicas
-              type: object
-            codisProxy:
-              properties:
-                replicas:
-                  format: int32
-                  type: integer
-              required:
-              - replicas
-              type: object
-            codisServer:
-              properties:
-                replicas:
-                  format: int32
-                  type: integer
-              required:
-              - replicas
-              type: object
-            schedulerName:
-              type: string
-          type: object
-        status:
-          properties:
-            codisDashboard:
-              properties:
-                phase:
-                  type: string
-                statefulSet:
-                  type: object
-              type: object
-            codisProxy:
-              properties:
-                deployment:
-                  type: object
-                phase:
-                  type: string
-              type: object
-            codisServer:
-              properties:
-                phase:
-                  type: string
-                statefulSet:
-                  type: object
-              type: object
-          type: object
-      required:
-      - spec
-      - status
-  version: v1alpha1
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
