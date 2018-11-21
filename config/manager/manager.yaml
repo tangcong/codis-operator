@@ -43,7 +43,7 @@ spec:
       containers:
       - command:
         - /root/manager
-        image: controller:latest
+        image: ccr.ccs.tencentyun.com/codis/codis-operator:latest
         imagePullPolicy: Always
         name: manager
         env:
