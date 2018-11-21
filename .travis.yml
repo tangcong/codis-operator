@@ -1,4 +1,9 @@
+sudo: required
+
 language: go
+
+services:
+  - docker
 
 os:
     - linux
@@ -10,4 +15,4 @@ go:
 
 script:
     - make
-    - make test
+    - make docker-build
