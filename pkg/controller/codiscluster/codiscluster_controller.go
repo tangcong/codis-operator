@@ -24,6 +24,7 @@ import (
 	"github.com/golang/glog"
 	codisv1alpha1 "github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	member "github.com/tangcong/codis-operator/pkg/manager"
+	"github.com/tangcong/codis-operator/pkg/manager/dashboard"
 	"github.com/tangcong/codis-operator/pkg/manager/proxy"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -71,7 +72,8 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		Interface: eventv1.New(kubeCli.CoreV1().RESTClient()).Events("")})
 	recorder := eventBroadcaster.NewRecorder(mgr.GetScheme(), corev1.EventSource{Component: "codiscluster"})
 	proxy := proxy.NewProxyManager(mgr.GetClient(), mgr.GetScheme(), recorder)
-	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy}
+	dashboard := dashboard.NewDashboardManager(mgr.GetClient(), mgr.GetScheme(), recorder)
+	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy, dashboard: dashboard}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -156,12 +158,11 @@ type defaultCodisClusterControl struct {
 }
 
 func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.CodisCluster) error {
-	/*
-		err := ccc.dashboard.Reconcile(cc)
-		if err != nil {
-			log.Printf("Reconcile dashboard,err is %s\n", err)
-		}*/
-	err := ccc.proxy.Reconcile(cc)
+	err := ccc.dashboard.Reconcile(cc)
+	if err != nil {
+		log.Printf("Reconcile dashboard,err is %s\n", err)
+	}
+	err = ccc.proxy.Reconcile(cc)
 	if err != nil {
 		log.Printf("Reconcile Proxy,err is %s\n", err)
 	}
