@@ -18,19 +18,25 @@ package codiscluster
 
 import (
 	"context"
+	"fmt"
 	"log"
-	"reflect"
 
+	"github.com/golang/glog"
 	codisv1alpha1 "github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
+	member "github.com/tangcong/codis-operator/pkg/manager"
+	"github.com/tangcong/codis-operator/pkg/manager/proxy"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
+	//"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
+	eventv1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -51,7 +57,21 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileCodisCluster{Client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	cfg, err := rest.InClusterConfig()
+	if err != nil {
+		glog.Fatalf("failed to get config: %v", err)
+	}
+	kubeCli, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		glog.Fatalf("failed to get kubernetes Clientset: %v", err)
+	}
+	eventBroadcaster := record.NewBroadcaster()
+	eventBroadcaster.StartLogging(glog.Infof)
+	eventBroadcaster.StartRecordingToSink(&eventv1.EventSinkImpl{
+		Interface: eventv1.New(kubeCli.CoreV1().RESTClient()).Events("")})
+	recorder := eventBroadcaster.NewRecorder(mgr.GetScheme(), corev1.EventSource{Component: "codiscluster"})
+	proxy := proxy.NewProxyManager(mgr.GetClient(), mgr.GetScheme(), recorder)
+	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -81,14 +101,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	return nil
 }
 
-var _ reconcile.Reconciler = &ReconcileCodisCluster{}
-
-// ReconcileCodisCluster reconciles a CodisCluster object
-type ReconcileCodisCluster struct {
-	client.Client
-	scheme *runtime.Scheme
-}
-
 // Reconcile reads that state of the cluster for a CodisCluster object and makes changes based on the state read
 // and what is in the CodisCluster.Spec
 // TODO(user): Modify this Reconcile function to implement your Controller logic.  The scaffolding writes
@@ -96,71 +108,68 @@ type ReconcileCodisCluster struct {
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=codis.k8s.io,resources=codisclusters,verbs=get;list;watch;create;update;patch;delete
-func (r *ReconcileCodisCluster) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *defaultCodisClusterControl) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the CodisCluster instance
-	instance := &codisv1alpha1.CodisCluster{}
-	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	cluster := &codisv1alpha1.CodisCluster{}
+	err := r.Get(context.TODO(), request.NamespacedName, cluster)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
 			// For additional cleanup logic use finalizers.
+			log.Printf("codis cluster %s not found,err is %s\n", request.NamespacedName, err)
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
+		log.Printf("get codis cluster %s failed,err is %s\n", request.NamespacedName, err)
 		return reconcile.Result{}, err
 	}
-
-	// TODO(user): Change this to be the object type created by your controller
-	// Define the desired Deployment object
-	deploy := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name + "-deployment",
-			Namespace: instance.Namespace,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"deployment": instance.Name + "-deployment"},
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"deployment": instance.Name + "-deployment"}},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "nginx",
-							Image: "nginx",
-						},
-					},
-				},
-			},
-		},
-	}
-	if err := controllerutil.SetControllerReference(instance, deploy, r.scheme); err != nil {
-		return reconcile.Result{}, err
+	if err = r.ReconcileCodisCluster(cluster); err != nil {
+		reason := fmt.Sprintf("Failed:%s", err)
+		msg := fmt.Sprintf("CodisCluster %s failed error: %s", cluster.GetName(), err)
+		r.recorder.Event(cluster, corev1.EventTypeWarning, reason, msg)
 	}
 
-	// TODO(user): Change this for the object type created by your controller
-	// Check if the Deployment already exists
-	found := &appsv1.Deployment{}
-	err = r.Get(context.TODO(), types.NamespacedName{Name: deploy.Name, Namespace: deploy.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		log.Printf("Creating Deployment %s/%s\n", deploy.Namespace, deploy.Name)
-		err = r.Create(context.TODO(), deploy)
-		if err != nil {
-			return reconcile.Result{}, err
+	/*
+		// TODO(user): Change this for the object type created by your controller
+		// Update the found object and write the result back if there are any changes
+		if !reflect.DeepEqual(deploy.Spec, found.Spec) {
+			found.Spec = deploy.Spec
+			log.Printf("Updating Deployment %s/%s\n", deploy.Namespace, deploy.Name)
+			err = r.Update(context.TODO(), found)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
 		}
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
+	*/
+	//to do
 
-	// TODO(user): Change this for the object type created by your controller
-	// Update the found object and write the result back if there are any changes
-	if !reflect.DeepEqual(deploy.Spec, found.Spec) {
-		found.Spec = deploy.Spec
-		log.Printf("Updating Deployment %s/%s\n", deploy.Namespace, deploy.Name)
-		err = r.Update(context.TODO(), found)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-	}
 	return reconcile.Result{}, nil
+}
+
+type defaultCodisClusterControl struct {
+	client.Client
+	scheme    *runtime.Scheme
+	proxy     member.Manager
+	dashboard member.Manager
+	redis     member.Manager
+	recorder  record.EventRecorder
+}
+
+func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.CodisCluster) error {
+	/*
+		err := ccc.dashboard.Reconcile(cc)
+		if err != nil {
+			log.Printf("Reconcile dashboard,err is %s\n", err)
+		}*/
+	err := ccc.proxy.Reconcile(cc)
+	if err != nil {
+		log.Printf("Reconcile Proxy,err is %s\n", err)
+	}
+	/*
+		err := ccc.redis.Reconcile(cc)
+		if err != nil {
+			log.Printf("Reconcile redis,err is %s\n", err)
+		}
+	*/
+	return err
 }

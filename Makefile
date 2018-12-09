@@ -23,9 +23,10 @@ install: manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	kustomize build config/default > ./deploy/manager/deployment.yml
+	kustomize build config/default > ./deploy/manager/deployment-pro.yml
+	kustomize build config/dev > ./deploy/manager/deployment-dev.yml
 	#cat ./config/crds/codis_v1alpha1_codiscluster.yaml >> ./deploy/manager/deployment.yml
-	kubectl apply -f ./deploy/manager/deployment.yml
+	kubectl apply -f ./deploy/manager/deployment-dev.yml
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests:

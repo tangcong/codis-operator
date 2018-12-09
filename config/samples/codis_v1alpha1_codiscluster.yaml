@@ -5,3 +5,15 @@ metadata:
     controller-tools.k8s.io: "1.0"
   name: codiscluster-sample
 spec:
+  codisProxy:
+    replicas: 3
+    image: codis3.2:latest
+  codisServer:
+    replicas: 2
+    image: codis3.2:latest
+  codisDashboard:
+    replicas: 1
+    image: codis3.2:latest
+status:
+    codisProxy:
+      phase: normal
