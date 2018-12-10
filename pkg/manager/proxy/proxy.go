@@ -125,6 +125,16 @@ func (pm *proxyManager) syncCodisProxyService(cc *v1alpha1.CodisCluster) error {
 	return nil
 }
 
+func (pm *proxyManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.EnvVar {
+	var envVarList []corev1.EnvVar
+	envVarList = append(envVarList, corev1.EnvVar{Name: "CODIS_PATH", Value: "/gopath/src/github.com/CodisLabs/codis"})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "PRODUCT_NAME", Value: cc.Spec.ClusterName})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"}}})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "DASHBOARD", Value: utils.GetDashboardSvr(cc)})
+	return envVarList
+}
+
 func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *apps.Deployment {
 	ns := cc.GetNamespace()
 	ccName := cc.GetName()
@@ -133,6 +143,8 @@ func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *a
 		"component":   "codis-proxy",
 		"clusterName": ccName,
 	}
+
+	envVarList := pm.populateEnvVar(cc)
 
 	deploy := &apps.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -153,6 +165,14 @@ func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *a
 							Name:            "codis-proxy",
 							Image:           cc.Spec.CodisProxy.Image,
 							ImagePullPolicy: "IfNotPresent",
+
+							Command: []string{"codis-proxy"},
+							Args:    []string{"-c", "$(CODIS_PATH)/config/proxy.toml", "--dashboard", "$(DASHBOARD):18080", "--host-admin", "$(POD_IP):11080", "--host-proxy", "$(POD_IP):19000", "--product_name", "$(PRODUCT_NAME)", "--product_auth", cc.Spec.CodisDashboard.ProductAuth, "--session_auth", cc.Spec.CodisProxy.SessionAuth},
+							Env:     envVarList,
+							Ports: []corev1.ContainerPort{
+								{Name: "admin-port", ContainerPort: 11080},
+								{Name: "proxy-port", ContainerPort: 19000},
+							},
 						},
 					},
 				},
@@ -205,6 +225,12 @@ func (pm *proxyManager) getNewCodisProxyService(cc *v1alpha1.CodisCluster) *core
 					Name:       "proxy-port",
 					Port:       19000,
 					TargetPort: intstr.FromInt(19000),
+					Protocol:   corev1.ProtocolTCP,
+				},
+				{
+					Name:       "admin-port",
+					Port:       11080,
+					TargetPort: intstr.FromInt(11080),
 					Protocol:   corev1.ProtocolTCP,
 				},
 			},

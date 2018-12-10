@@ -105,10 +105,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 // Reconcile reads that state of the cluster for a CodisCluster object and makes changes based on the state read
 // and what is in the CodisCluster.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  The scaffolding writes
-// a Deployment as an example
 // Automatically generate RBAC rules to allow the Controller to read and write Deployments
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=codis.k8s.io,resources=codisclusters,verbs=get;list;watch;create;update;patch;delete
 func (r *defaultCodisClusterControl) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the CodisCluster instance

@@ -125,6 +125,15 @@ func (pm *dashboardManager) syncCodisDashboardService(cc *v1alpha1.CodisCluster)
 	return nil
 }
 
+func (pm *dashboardManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.EnvVar {
+	var envVarList []corev1.EnvVar
+	envVarList = append(envVarList, corev1.EnvVar{Name: "CODIS_PATH", Value: "/gopath/src/github.com/CodisLabs/codis"})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "PRODUCT_NAME", Value: cc.Spec.ClusterName})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"}}})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}})
+	return envVarList
+}
+
 func (pm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCluster) *apps.StatefulSet {
 	ns := cc.GetNamespace()
 	ccName := cc.GetName()
@@ -134,7 +143,9 @@ func (pm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 		"clusterName": ccName,
 	}
 
-	deploy := &apps.StatefulSet{
+	envVarList := pm.populateEnvVar(cc)
+
+	sts := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            pm.getStatefulSetName(ccName),
 			Namespace:       ns,
@@ -153,6 +164,10 @@ func (pm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 							Name:            "codis-dashboard",
 							Image:           cc.Spec.CodisDashboard.Image,
 							ImagePullPolicy: "IfNotPresent",
+							Command:         []string{"codis-dashboard"},
+							Args:            []string{"-c", "$(CODIS_PATH)/config/dashboard.toml", "--host-admin", "$(POD_IP):18000", "--product_name", "$(PRODUCT_NAME)", "--product_auth", cc.Spec.CodisDashboard.ProductAuth},
+							Env:             envVarList,
+							Ports:           []corev1.ContainerPort{{Name: "dashboard", ContainerPort: 18080}},
 						},
 					},
 				},
@@ -160,7 +175,7 @@ func (pm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 		},
 	}
 	log.Printf("codis dashboard image:%s", cc.Spec.CodisDashboard.Image)
-	return deploy
+	return sts
 }
 
 func (pm *dashboardManager) syncCodisDashboardStatefulSet(cc *v1alpha1.CodisCluster) error {

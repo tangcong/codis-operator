@@ -17,6 +17,18 @@ rules:
   - patch
   - delete
 - apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
   - codis.k8s.io
   resources:
   - codisclusters

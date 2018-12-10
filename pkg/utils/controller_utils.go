@@ -11,7 +11,7 @@ var (
 	controllerKind = v1alpha1.SchemeGroupVersion.WithKind("CodisCluster")
 )
 
-// GetOwnerRef returns TidbCluster's OwnerReference
+// GetOwnerRef returns CodisCluster's OwnerReference
 func GetOwnerRef(cc *v1alpha1.CodisCluster) metav1.OwnerReference {
 	controller := true
 	blockOwnerDeletion := true
@@ -23,4 +23,12 @@ func GetOwnerRef(cc *v1alpha1.CodisCluster) metav1.OwnerReference {
 		Controller:         &controller,
 		BlockOwnerDeletion: &blockOwnerDeletion,
 	}
+}
+
+// GetDashboardSvr returns CodisCluster's dashboard addr
+// for example,sample-dashboard.codis-operator-system.svc.cluster.local
+func GetDashboardSvr(cc *v1alpha1.CodisCluster) string {
+	ns := cc.GetNamespace()
+	ccName := cc.GetName()
+	return ccName + "-dashboard." + ns + ".svc.cluster.local"
 }

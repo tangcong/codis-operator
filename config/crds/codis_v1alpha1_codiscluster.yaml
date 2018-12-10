@@ -26,19 +26,25 @@ spec:
               type: string
             codisDashboard:
               properties:
+                productAuth:
+                  type: string
                 replicas:
                   format: int32
                   type: integer
               required:
               - replicas
+              - productAuth
               type: object
             codisProxy:
               properties:
                 replicas:
                   format: int32
                   type: integer
+                sessionAuth:
+                  type: string
               required:
               - replicas
+              - sessionAuth
               type: object
             codisServer:
               properties:
@@ -50,6 +56,8 @@ spec:
               type: object
             schedulerName:
               type: string
+          required:
+          - clusterName
           type: object
         status:
           properties:
@@ -77,7 +85,6 @@ spec:
           type: object
       required:
       - spec
-      - status
   version: v1alpha1
 status:
   acceptedNames:

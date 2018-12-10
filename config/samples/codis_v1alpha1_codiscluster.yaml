@@ -2,18 +2,18 @@ apiVersion: codis.k8s.io/v1alpha1
 kind: CodisCluster
 metadata:
   labels:
-    controller-tools.k8s.io: "1.0"
-  name: codiscluster-sample
+    app: codis-cluster
+  name: sample
 spec:
+  clusterName: codis-test
   codisProxy:
     replicas: 3
     image: codis3.2:latest
+    sessionAuth: session
   codisServer:
     replicas: 2
     image: codis3.2:latest
   codisDashboard:
     replicas: 1
     image: codis3.2:latest
-status:
-    codisProxy:
-      phase: normal
+    productAuth: product

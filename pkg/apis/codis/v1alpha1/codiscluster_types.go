@@ -26,13 +26,13 @@ type CodisCluster struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   CodisClusterSpec   `json:"spec"`
-	Status CodisClusterStatus `json:"status"`
+	Status CodisClusterStatus `json:"status,omitempty"`
 }
 
 // CodisClusterSpec describes the attributes that a user creates on a codis cluster
 type CodisClusterSpec struct {
 	SchedulerName  string             `json:"schedulerName,omitempty"`
-	ClusterName    string             `json:"clusterName,omitempty"`
+	ClusterName    string             `json:"clusterName"`
 	CodisProxy     CodisProxySpec     `json:"codisProxy,omitempty"`
 	CodisServer    CodisServerSpec    `json:"codisServer,omitempty"`
 	CodisDashboard CodisDashboardSpec `json:"codisDashboard,omitempty"`
@@ -75,7 +75,8 @@ type ResourceRequirement struct {
 // CodisProxySpec contains details of CodisProxy member
 type CodisProxySpec struct {
 	ContainerSpec
-	Replicas int32 `json:"replicas"`
+	Replicas    int32  `json:"replicas"`
+	SessionAuth string `json:"sessionAuth"`
 }
 
 // CodisServerSpec contains details of CodisServer member
@@ -87,7 +88,8 @@ type CodisServerSpec struct {
 // CodisDashboardSpec contains details of CodisDashboard
 type CodisDashboardSpec struct {
 	ContainerSpec
-	Replicas int32 `json:"replicas"`
+	Replicas    int32  `json:"replicas"`
+	ProductAuth string `json:"productAuth"`
 }
 
 type CodisProxyStatus struct {
