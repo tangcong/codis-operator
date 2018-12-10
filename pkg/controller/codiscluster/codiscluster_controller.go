@@ -25,6 +25,7 @@ import (
 	codisv1alpha1 "github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	member "github.com/tangcong/codis-operator/pkg/manager"
 	"github.com/tangcong/codis-operator/pkg/manager/dashboard"
+	"github.com/tangcong/codis-operator/pkg/manager/fe"
 	"github.com/tangcong/codis-operator/pkg/manager/proxy"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -73,7 +74,8 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	recorder := eventBroadcaster.NewRecorder(mgr.GetScheme(), corev1.EventSource{Component: "codiscluster"})
 	proxy := proxy.NewProxyManager(mgr.GetClient(), mgr.GetScheme(), recorder)
 	dashboard := dashboard.NewDashboardManager(mgr.GetClient(), mgr.GetScheme(), recorder)
-	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy, dashboard: dashboard}
+	fe := fe.NewFeManager(mgr.GetClient(), mgr.GetScheme(), recorder)
+	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy, dashboard: dashboard, fe: fe}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -153,6 +155,7 @@ type defaultCodisClusterControl struct {
 	proxy     member.Manager
 	dashboard member.Manager
 	redis     member.Manager
+	fe        member.Manager
 	recorder  record.EventRecorder
 }
 
@@ -164,6 +167,10 @@ func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.C
 	err = ccc.proxy.Reconcile(cc)
 	if err != nil {
 		log.Printf("Reconcile Proxy,err is %s\n", err)
+	}
+	err = ccc.fe.Reconcile(cc)
+	if err != nil {
+		log.Printf("Reconcile fe,err is %s\n", err)
 	}
 	/*
 		err := ccc.redis.Reconcile(cc)

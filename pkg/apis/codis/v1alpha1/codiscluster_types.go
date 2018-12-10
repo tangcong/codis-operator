@@ -36,6 +36,7 @@ type CodisClusterSpec struct {
 	CodisProxy     CodisProxySpec     `json:"codisProxy,omitempty"`
 	CodisServer    CodisServerSpec    `json:"codisServer,omitempty"`
 	CodisDashboard CodisDashboardSpec `json:"codisDashboard,omitempty"`
+	CodisFe        CodisFeSpec        `json:"codisFe,omitempty"`
 }
 
 // CodisClusterStatus represents the current status of a codis cluster.
@@ -43,6 +44,7 @@ type CodisClusterStatus struct {
 	CodisProxy     CodisProxyStatus     `json:"codisProxy,omitempty"`
 	CodisServer    CodisServerStatus    `json:"codisServer,omitempty"`
 	CodisDashboard CodisDashboardStatus `json:"codisDashboard,omitempty"`
+	CodisFe        CodisFeStatus        `json:"codisFeStatus,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -92,6 +94,12 @@ type CodisDashboardSpec struct {
 	ProductAuth string `json:"productAuth"`
 }
 
+// CodisFeSpec contains details of CodisFe
+type CodisFeSpec struct {
+	ContainerSpec
+	Replicas int32 `json:"replicas"`
+}
+
 type CodisProxyStatus struct {
 	Phase      MemberPhase            `json:"phase,omitempty"`
 	Deployment *apps.DeploymentStatus `json:"deployment,omitempty"`
@@ -105,6 +113,11 @@ type CodisServerStatus struct {
 type CodisDashboardStatus struct {
 	Phase       MemberPhase             `json:"phase,omitempty"`
 	StatefulSet *apps.StatefulSetStatus `json:"statefulSet,omitempty"`
+}
+
+type CodisFeStatus struct {
+	Phase      MemberPhase            `json:"phase,omitempty"`
+	Deployment *apps.DeploymentStatus `json:"deployment,omitempty"`
 }
 
 func init() {

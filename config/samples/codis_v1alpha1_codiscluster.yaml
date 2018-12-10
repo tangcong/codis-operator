@@ -17,3 +17,6 @@ spec:
     replicas: 1
     image: codis3.2:latest
     productAuth: product
+  codisFe:
+    replicas: 2
+    image: codis3.2:latest

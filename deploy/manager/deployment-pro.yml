@@ -42,6 +42,14 @@ spec:
               - replicas
               - productAuth
               type: object
+            codisFe:
+              properties:
+                replicas:
+                  format: int32
+                  type: integer
+              required:
+              - replicas
+              type: object
             codisProxy:
               properties:
                 replicas:
@@ -74,6 +82,13 @@ spec:
                   type: string
                 statefulSet:
                   type: object
+              type: object
+            codisFeStatus:
+              properties:
+                deployment:
+                  type: object
+                phase:
+                  type: string
               type: object
             codisProxy:
               properties:
