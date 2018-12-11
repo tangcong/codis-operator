@@ -231,7 +231,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: codis-operator-system
+  namespace: dev
 ---
 apiVersion: v1
 kind: Secret
@@ -239,7 +239,7 @@ metadata:
   annotations:
     note: Hello,I am Development!
   name: dev-codis-operator-webhook-server-secret
-  namespace: codis-operator-system
+  namespace: dev
 ---
 apiVersion: v1
 kind: Service
@@ -250,7 +250,7 @@ metadata:
     control-plane: controller-manager
     controller-tools.k8s.io: "1.0"
   name: dev-codis-operator-controller-manager-service
-  namespace: codis-operator-system
+  namespace: dev
 spec:
   ports:
   - port: 443
@@ -267,7 +267,7 @@ metadata:
     control-plane: controller-manager
     controller-tools.k8s.io: "1.0"
   name: dev-codis-operator-controller-manager
-  namespace: codis-operator-system
+  namespace: dev
 spec:
   selector:
     matchLabels:
