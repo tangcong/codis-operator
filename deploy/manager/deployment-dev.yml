@@ -67,11 +67,15 @@ spec:
               type: object
             codisServer:
               properties:
+                groupReplicas:
+                  format: int32
+                  type: integer
                 replicas:
                   format: int32
                   type: integer
               required:
               - replicas
+              - groupReplicas
               type: object
             schedulerName:
               type: string

@@ -27,6 +27,7 @@ import (
 	"github.com/tangcong/codis-operator/pkg/manager/dashboard"
 	"github.com/tangcong/codis-operator/pkg/manager/fe"
 	"github.com/tangcong/codis-operator/pkg/manager/proxy"
+	"github.com/tangcong/codis-operator/pkg/manager/redis"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -75,7 +76,8 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	proxy := proxy.NewProxyManager(mgr.GetClient(), mgr.GetScheme(), recorder)
 	dashboard := dashboard.NewDashboardManager(mgr.GetClient(), mgr.GetScheme(), recorder)
 	fe := fe.NewFeManager(mgr.GetClient(), mgr.GetScheme(), recorder)
-	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy, dashboard: dashboard, fe: fe}
+	redis := redis.NewRedisManager(mgr.GetClient(), mgr.GetScheme(), recorder)
+	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy, dashboard: dashboard, fe: fe, redis: redis}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -172,11 +174,9 @@ func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.C
 	if err != nil {
 		log.Printf("Reconcile fe,err is %s\n", err)
 	}
-	/*
-		err := ccc.redis.Reconcile(cc)
-		if err != nil {
-			log.Printf("Reconcile redis,err is %s\n", err)
-		}
-	*/
+	err = ccc.redis.Reconcile(cc)
+	if err != nil {
+		log.Printf("Reconcile redis,err is %s\n", err)
+	}
 	return err
 }

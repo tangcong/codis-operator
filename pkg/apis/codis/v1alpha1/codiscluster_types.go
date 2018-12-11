@@ -84,7 +84,8 @@ type CodisProxySpec struct {
 // CodisServerSpec contains details of CodisServer member
 type CodisServerSpec struct {
 	ContainerSpec
-	Replicas int32 `json:"replicas"`
+	Replicas      int32 `json:"replicas"`
+	GroupReplicas int32 `json:"groupReplicas"`
 }
 
 // CodisDashboardSpec contains details of CodisDashboard
