@@ -30,90 +30,90 @@ func NewDashboardManager(client client.Client, scheme *runtime.Scheme, record re
 	return &dashboardManager{client, scheme, record}
 }
 
-func (pm *dashboardManager) Reconcile(cc *v1alpha1.CodisCluster) error {
+func (dm *dashboardManager) Reconcile(cc *v1alpha1.CodisCluster) error {
 	// Reconcile Codis Dashboard Service
-	if err := pm.syncCodisDashboardService(cc); err != nil {
+	if err := dm.syncCodisDashboardService(cc); err != nil {
 		return err
 	}
 
 	// Reconcile Codis Dashboard StatefulSet
-	return pm.syncCodisDashboardStatefulSet(cc)
+	return dm.syncCodisDashboardStatefulSet(cc)
 }
 
-func (pm *dashboardManager) getSvcName(ccName string) string {
+func (dm *dashboardManager) getSvcName(ccName string) string {
 	return ccName + "-dashboard"
 }
 
-func (pm *dashboardManager) getStatefulSetName(ccName string) string {
+func (dm *dashboardManager) getStatefulSetName(ccName string) string {
 	return ccName + "-dashboard"
 }
 
-func (pm *dashboardManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCluster, svc *corev1.Service, err error) {
+func (dm *dashboardManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCluster, svc *corev1.Service, err error) {
 	ccName := cc.Name
 	svcName := svc.Name
 	if err == nil {
 		reason := fmt.Sprintf("Successful %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
-		pm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
+		dm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
 		log.Printf("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
-		pm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
+		dm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
 		log.Printf("%s,%s", reason, msg)
 	}
 }
 
-func (pm *dashboardManager) recordStatefulSetEvent(verb string, cc *v1alpha1.CodisCluster, svc *apps.StatefulSet, err error) {
+func (dm *dashboardManager) recordStatefulSetEvent(verb string, cc *v1alpha1.CodisCluster, svc *apps.StatefulSet, err error) {
 	ccName := cc.Name
 	svcName := svc.Name
 	if err == nil {
 		reason := fmt.Sprintf("Successful %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s StatefulSet %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
-		pm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
+		dm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
 		log.Printf("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s StatefulSet %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
-		pm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
+		dm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
 		log.Printf("%s,%s", reason, msg)
 	}
 }
 
-func (pm *dashboardManager) createService(cc *v1alpha1.CodisCluster, svc *corev1.Service) error {
-	if err := pm.client.Create(context.TODO(), svc); err != nil {
-		pm.recordServiceEvent("create", cc, svc, err)
+func (dm *dashboardManager) createService(cc *v1alpha1.CodisCluster, svc *corev1.Service) error {
+	if err := dm.client.Create(context.TODO(), svc); err != nil {
+		dm.recordServiceEvent("create", cc, svc, err)
 		return err
 	} else {
-		pm.recordServiceEvent("create", cc, svc, err)
+		dm.recordServiceEvent("create", cc, svc, err)
 		return nil
 	}
 }
 
-func (pm *dashboardManager) createStatefulSet(cc *v1alpha1.CodisCluster, deploy *apps.StatefulSet) error {
-	if err := pm.client.Create(context.TODO(), deploy); err != nil {
-		pm.recordStatefulSetEvent("create", cc, deploy, err)
+func (dm *dashboardManager) createStatefulSet(cc *v1alpha1.CodisCluster, deploy *apps.StatefulSet) error {
+	if err := dm.client.Create(context.TODO(), deploy); err != nil {
+		dm.recordStatefulSetEvent("create", cc, deploy, err)
 		return err
 	} else {
-		pm.recordStatefulSetEvent("create", cc, deploy, err)
+		dm.recordStatefulSetEvent("create", cc, deploy, err)
 		return nil
 	}
 }
 
-func (pm *dashboardManager) syncCodisDashboardService(cc *v1alpha1.CodisCluster) error {
+func (dm *dashboardManager) syncCodisDashboardService(cc *v1alpha1.CodisCluster) error {
 	ns := cc.GetNamespace()
 	ccName := cc.GetName()
 
-	newSvc := pm.getNewCodisDashboardService(cc)
+	newSvc := dm.getNewCodisDashboardService(cc)
 
 	oldSvc := &corev1.Service{}
-	if err := pm.client.Get(context.TODO(), types.NamespacedName{Name: pm.getSvcName(ccName), Namespace: ns}, oldSvc); err != nil {
+	if err := dm.client.Get(context.TODO(), types.NamespacedName{Name: dm.getSvcName(ccName), Namespace: ns}, oldSvc); err != nil {
 		if errors.IsNotFound(err) {
-			return pm.createService(cc, newSvc)
+			return dm.createService(cc, newSvc)
 		} else {
 			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
 			return err
@@ -125,7 +125,7 @@ func (pm *dashboardManager) syncCodisDashboardService(cc *v1alpha1.CodisCluster)
 	return nil
 }
 
-func (pm *dashboardManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.EnvVar {
+func (dm *dashboardManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.EnvVar {
 	var envVarList []corev1.EnvVar
 	envVarList = append(envVarList, corev1.EnvVar{Name: "CODIS_PATH", Value: "/gopath/src/github.com/CodisLabs/codis"})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "PRODUCT_NAME", Value: cc.Spec.ClusterName})
@@ -134,7 +134,7 @@ func (pm *dashboardManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.E
 	return envVarList
 }
 
-func (pm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCluster) *apps.StatefulSet {
+func (dm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCluster) *apps.StatefulSet {
 	ns := cc.GetNamespace()
 	ccName := cc.GetName()
 
@@ -143,16 +143,17 @@ func (pm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 		"clusterName": ccName,
 	}
 
-	envVarList := pm.populateEnvVar(cc)
+	envVarList := dm.populateEnvVar(cc)
 
 	sts := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            pm.getStatefulSetName(ccName),
+			Name:            dm.getStatefulSetName(ccName),
 			Namespace:       ns,
 			OwnerReferences: []metav1.OwnerReference{utils.GetOwnerRef(cc)},
 		},
 		Spec: apps.StatefulSetSpec{
-			Replicas: &cc.Spec.CodisDashboard.Replicas,
+			Replicas:    &cc.Spec.CodisDashboard.Replicas,
+			ServiceName: dm.getSvcName(ccName),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: codisDashboardLabels,
 			},
@@ -178,15 +179,15 @@ func (pm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 	return sts
 }
 
-func (pm *dashboardManager) syncCodisDashboardStatefulSet(cc *v1alpha1.CodisCluster) error {
+func (dm *dashboardManager) syncCodisDashboardStatefulSet(cc *v1alpha1.CodisCluster) error {
 	ns := cc.GetNamespace()
 	ccName := cc.GetName()
 
-	newCodisDashboardStatefulSet := pm.getNewCodisDashboardStatefulSet(cc)
+	newCodisDashboardStatefulSet := dm.getNewCodisDashboardStatefulSet(cc)
 	oldCodisDashboardStatefulSet := &apps.StatefulSet{}
-	if err := pm.client.Get(context.TODO(), types.NamespacedName{Name: pm.getStatefulSetName(ccName), Namespace: ns}, oldCodisDashboardStatefulSet); err != nil {
+	if err := dm.client.Get(context.TODO(), types.NamespacedName{Name: dm.getStatefulSetName(ccName), Namespace: ns}, oldCodisDashboardStatefulSet); err != nil {
 		if errors.IsNotFound(err) {
-			return pm.createStatefulSet(cc, newCodisDashboardStatefulSet)
+			return dm.createStatefulSet(cc, newCodisDashboardStatefulSet)
 		} else {
 			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
 			return err
@@ -198,7 +199,7 @@ func (pm *dashboardManager) syncCodisDashboardStatefulSet(cc *v1alpha1.CodisClus
 	return nil
 }
 
-func (pm *dashboardManager) getNewCodisDashboardService(cc *v1alpha1.CodisCluster) *corev1.Service {
+func (dm *dashboardManager) getNewCodisDashboardService(cc *v1alpha1.CodisCluster) *corev1.Service {
 	ns := cc.Namespace
 	ccName := cc.Name
 
@@ -208,7 +209,7 @@ func (pm *dashboardManager) getNewCodisDashboardService(cc *v1alpha1.CodisCluste
 	}
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            pm.getSvcName(ccName),
+			Name:            dm.getSvcName(ccName),
 			Namespace:       ns,
 			Labels:          codisDashboardLabels,
 			OwnerReferences: []metav1.OwnerReference{utils.GetOwnerRef(cc)},

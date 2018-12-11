@@ -11,7 +11,8 @@ spec:
     image: codis3.2:latest
     sessionAuth: session
   codisServer:
-    replicas: 2
+    replicas: 4
+    groupReplicas: 2
     image: codis3.2:latest
   codisDashboard:
     replicas: 1

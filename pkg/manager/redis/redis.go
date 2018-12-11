@@ -152,7 +152,8 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 			OwnerReferences: []metav1.OwnerReference{utils.GetOwnerRef(cc)},
 		},
 		Spec: apps.StatefulSetSpec{
-			Replicas: &cc.Spec.CodisServer.Replicas,
+			Replicas:    &cc.Spec.CodisServer.Replicas,
+			ServiceName: rm.getSvcName(ccName),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: codisServerLabels,
 			},
