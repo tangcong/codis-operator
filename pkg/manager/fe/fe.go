@@ -3,6 +3,7 @@ package fe
 import (
 	"context"
 	"fmt"
+	log "github.com/golang/glog"
 	"github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	"github.com/tangcong/codis-operator/pkg/manager"
 	"github.com/tangcong/codis-operator/pkg/utils"
@@ -15,8 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	//"sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"log"
 	"strings"
 )
 
@@ -56,13 +55,13 @@ func (fm *feManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCluster, 
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		fm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		fm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -74,13 +73,13 @@ func (fm *feManager) recordDeployEvent(verb string, cc *v1alpha1.CodisCluster, s
 		msg := fmt.Sprintf("%s Deploy %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		fm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Deploy %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		fm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -115,11 +114,11 @@ func (fm *feManager) syncCodisFeService(cc *v1alpha1.CodisCluster) error {
 		if errors.IsNotFound(err) {
 			return fm.createService(cc, newSvc)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get fe svc err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc ok", ns, ccName)
+		log.Infof("ns:%s,ccName:%s,get fe svc ok", ns, ccName)
 	}
 	//to do
 	return nil
@@ -178,7 +177,7 @@ func (fm *feManager) getNewCodisFeDeployment(cc *v1alpha1.CodisCluster) *apps.De
 			},
 		},
 	}
-	log.Printf("codis fe image:%s", cc.Spec.CodisFe.Image)
+	log.Infof("deploy codis fe image:%s", cc.Spec.CodisFe.Image)
 	return deploy
 }
 
@@ -192,11 +191,11 @@ func (fm *feManager) syncCodisFeDeployment(cc *v1alpha1.CodisCluster) error {
 		if errors.IsNotFound(err) {
 			return fm.createDeploy(cc, newCodisFeDeploy)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get fe deployment err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc info:%+v", ns, ccName, oldCodisFeDeploy)
+		log.Infof("ns:%s,ccName:%s,get fe deployment info succ", ns, ccName)
 	}
 	//to do
 	return nil

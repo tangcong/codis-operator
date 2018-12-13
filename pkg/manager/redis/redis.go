@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	log "github.com/golang/glog"
 	"github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	"github.com/tangcong/codis-operator/pkg/manager"
 	"github.com/tangcong/codis-operator/pkg/utils"
@@ -15,8 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	//"sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"log"
 	"strings"
 )
 
@@ -56,13 +55,13 @@ func (rm *redisManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCluste
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		rm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		rm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -74,13 +73,13 @@ func (rm *redisManager) recordStatefulSetEvent(verb string, cc *v1alpha1.CodisCl
 		msg := fmt.Sprintf("%s StatefulSet %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		rm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s StatefulSet %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		rm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -115,11 +114,11 @@ func (rm *redisManager) syncCodisServerService(cc *v1alpha1.CodisCluster) error 
 		if errors.IsNotFound(err) {
 			return rm.createService(cc, newSvc)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get codis server svc err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc ok", ns, ccName)
+		log.Infof("ns:%s,ccName:%s,get codis server svc ok", ns, ccName)
 	}
 	//to do
 	return nil
@@ -175,7 +174,7 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 			},
 		},
 	}
-	log.Printf("codis redis image:%s", cc.Spec.CodisServer.Image)
+	log.Infof("deploy codis-server image:%s", cc.Spec.CodisServer.Image)
 	return sts
 }
 
@@ -189,11 +188,11 @@ func (rm *redisManager) syncCodisServerStatefulSet(cc *v1alpha1.CodisCluster) er
 		if errors.IsNotFound(err) {
 			return rm.createStatefulSet(cc, newCodisServerStatefulSet)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get codis server statefulset err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc info:%+v", ns, ccName, oldCodisServerStatefulSet)
+		log.Infof("ns:%s,ccName:%s,get codis server statefulset succ", ns, ccName)
 	}
 	//to do
 	return nil

@@ -19,9 +19,7 @@ package codiscluster
 import (
 	"context"
 	"fmt"
-	"log"
 
-	"github.com/golang/glog"
 	codisv1alpha1 "github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	member "github.com/tangcong/codis-operator/pkg/manager"
 	"github.com/tangcong/codis-operator/pkg/manager/dashboard"
@@ -34,6 +32,7 @@ import (
 	//	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	//"k8s.io/apimachinery/pkg/types"
+	log "github.com/golang/glog"
 	"k8s.io/client-go/kubernetes"
 	eventv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
@@ -62,14 +61,14 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	cfg, err := rest.InClusterConfig()
 	if err != nil {
-		glog.Fatalf("failed to get config: %v", err)
+		log.Fatalf("failed to get config: %v", err)
 	}
 	kubeCli, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		glog.Fatalf("failed to get kubernetes Clientset: %v", err)
+		log.Fatalf("failed to get kubernetes Clientset: %v", err)
 	}
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(glog.Infof)
+	eventBroadcaster.StartLogging(log.Infof)
 	eventBroadcaster.StartRecordingToSink(&eventv1.EventSinkImpl{
 		Interface: eventv1.New(kubeCli.CoreV1().RESTClient()).Events("")})
 	recorder := eventBroadcaster.NewRecorder(mgr.GetScheme(), corev1.EventSource{Component: "codiscluster"})
@@ -93,7 +92,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("watch codis cluster,err is %s\n", err)
+	log.Infof("watch codis cluster,err is %s\n", err)
 
 	// watch Deployment created by CodisCluster
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
@@ -103,7 +102,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("watch deployment,err is %s\n", err)
+	log.Infof("watch deployment,err is %s\n", err)
 
 	// watch Statefulset created by CodisCluster
 	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
@@ -113,7 +112,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("watch statefulset,err is %s\n", err)
+	log.Infof("watch statefulset,err is %s\n", err)
 
 	return nil
 }
@@ -133,13 +132,18 @@ func (r *defaultCodisClusterControl) Reconcile(request reconcile.Request) (recon
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
 			// For additional cleanup logic use finalizers.
-			log.Printf("codis cluster %s not found,err is %s\n", request.NamespacedName, err)
+			log.Infof("codis cluster %s not found,err is %s\n", request.NamespacedName, err)
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		log.Printf("get codis cluster %s failed,err is %s\n", request.NamespacedName, err)
+		log.Infof("get codis cluster %s failed,err is %s\n", request.NamespacedName, err)
 		return reconcile.Result{}, err
 	}
+	if cluster.DeletionTimestamp != nil {
+		log.Infof("codis cluster %s will be deleted,timestamp is %s\n", request.NamespacedName, cluster.DeletionTimestamp.String())
+		return reconcile.Result{}, nil
+	}
+	log.Infof("codis cluster %s changed\n", request.NamespacedName)
 	if err = r.ReconcileCodisCluster(cluster); err != nil {
 		reason := fmt.Sprintf("Failed:%s", err)
 		msg := fmt.Sprintf("CodisCluster %s failed error: %s", cluster.GetName(), err)
@@ -151,7 +155,7 @@ func (r *defaultCodisClusterControl) Reconcile(request reconcile.Request) (recon
 		// Update the found object and write the result back if there are any changes
 		if !reflect.DeepEqual(deploy.Spec, found.Spec) {
 			found.Spec = deploy.Spec
-			log.Printf("Updating Deployment %s/%s\n", deploy.Namespace, deploy.Name)
+			log.Infof("Updating Deployment %s/%s\n", deploy.Namespace, deploy.Name)
 			err = r.Update(context.TODO(), found)
 			if err != nil {
 				return reconcile.Result{}, err
@@ -176,19 +180,19 @@ type defaultCodisClusterControl struct {
 func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.CodisCluster) error {
 	err := ccc.dashboard.Reconcile(cc)
 	if err != nil {
-		log.Printf("Reconcile dashboard,err is %s\n", err)
+		log.Infof("Reconcile dashboard,err is %s\n", err)
 	}
 	err = ccc.proxy.Reconcile(cc)
 	if err != nil {
-		log.Printf("Reconcile Proxy,err is %s\n", err)
+		log.Infof("Reconcile Proxy,err is %s\n", err)
 	}
 	err = ccc.fe.Reconcile(cc)
 	if err != nil {
-		log.Printf("Reconcile fe,err is %s\n", err)
+		log.Infof("Reconcile fe,err is %s\n", err)
 	}
 	err = ccc.redis.Reconcile(cc)
 	if err != nil {
-		log.Printf("Reconcile redis,err is %s\n", err)
+		log.Infof("Reconcile redis,err is %s\n", err)
 	}
 	return err
 }

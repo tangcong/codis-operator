@@ -16,7 +16,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	//"sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"log"
+	log "github.com/golang/glog"
 	"strings"
 )
 
@@ -56,13 +56,13 @@ func (pm *proxyManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCluste
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		pm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		pm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -74,13 +74,13 @@ func (pm *proxyManager) recordDeployEvent(verb string, cc *v1alpha1.CodisCluster
 		msg := fmt.Sprintf("%s Deploy %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		pm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Deploy %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		pm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -115,11 +115,11 @@ func (pm *proxyManager) syncCodisProxyService(cc *v1alpha1.CodisCluster) error {
 		if errors.IsNotFound(err) {
 			return pm.createService(cc, newSvc)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get proxy svc err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc ok", ns, ccName)
+		log.Infof("ns:%s,ccName:%s,get proxy svc ok", ns, ccName)
 	}
 	//to do
 	return nil
@@ -179,7 +179,7 @@ func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *a
 			},
 		},
 	}
-	log.Printf("codis proxy image:%s", cc.Spec.CodisProxy.Image)
+	log.Infof("deploy codis proxy image:%s", cc.Spec.CodisProxy.Image)
 	return deploy
 }
 
@@ -193,11 +193,11 @@ func (pm *proxyManager) syncCodisProxyDeployment(cc *v1alpha1.CodisCluster) erro
 		if errors.IsNotFound(err) {
 			return pm.createDeploy(cc, newCodisProxyDeploy)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get proxy deployment err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc info:%+v", ns, ccName, oldCodisProxyDeploy)
+		log.Infof("ns:%s,ccName:%s,get proxy deployment info succ", ns, ccName)
 	}
 	//to do
 	return nil

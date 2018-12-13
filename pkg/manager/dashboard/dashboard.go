@@ -16,7 +16,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	//"sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"log"
+	log "github.com/golang/glog"
 	"strings"
 )
 
@@ -56,13 +56,13 @@ func (dm *dashboardManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCl
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		dm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s Service %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		dm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -74,13 +74,13 @@ func (dm *dashboardManager) recordStatefulSetEvent(verb string, cc *v1alpha1.Cod
 		msg := fmt.Sprintf("%s StatefulSet %s in CodisCluster %s successful",
 			strings.ToLower(verb), svcName, ccName)
 		dm.recorder.Event(cc, corev1.EventTypeNormal, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	} else {
 		reason := fmt.Sprintf("Failed %s", strings.Title(verb))
 		msg := fmt.Sprintf("%s StatefulSet %s in CodisCluster %s failed error: %s",
 			strings.ToLower(verb), svcName, ccName, err)
 		dm.recorder.Event(cc, corev1.EventTypeWarning, reason, msg)
-		log.Printf("%s,%s", reason, msg)
+		log.Infof("%s,%s", reason, msg)
 	}
 }
 
@@ -115,11 +115,11 @@ func (dm *dashboardManager) syncCodisDashboardService(cc *v1alpha1.CodisCluster)
 		if errors.IsNotFound(err) {
 			return dm.createService(cc, newSvc)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get dashboard svc err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc ok", ns, ccName)
+		log.Infof("ns:%s,ccName:%s,get dashboard svc ok", ns, ccName)
 	}
 	//to do
 	return nil
@@ -175,7 +175,7 @@ func (dm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 			},
 		},
 	}
-	log.Printf("codis dashboard image:%s", cc.Spec.CodisDashboard.Image)
+	log.Infof("deploy codis dashboard image:%s", cc.Spec.CodisDashboard.Image)
 	return sts
 }
 
@@ -189,11 +189,11 @@ func (dm *dashboardManager) syncCodisDashboardStatefulSet(cc *v1alpha1.CodisClus
 		if errors.IsNotFound(err) {
 			return dm.createStatefulSet(cc, newCodisDashboardStatefulSet)
 		} else {
-			log.Printf("ns:%s,ccName:%s,get svc err:%s", ns, ccName, err)
+			log.Infof("ns:%s,ccName:%s,get dashboard statefulset err:%s", ns, ccName, err)
 			return err
 		}
 	} else {
-		log.Printf("ns:%s,ccName:%s,get svc info:%+v", ns, ccName, oldCodisDashboardStatefulSet)
+		log.Infof("ns:%s,ccName:%s,get dashboard statefulset info succ", ns, ccName)
 	}
 	//to do
 	return nil
