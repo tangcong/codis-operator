@@ -284,7 +284,7 @@ spec:
         - name: SECRET_NAME
           value: dev-webhook-server-secret
         image: ccr.ccs.tencentyun.com/codis/codis-operator:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: manager
         ports:
         - containerPort: 9876

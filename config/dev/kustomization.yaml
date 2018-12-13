@@ -23,3 +23,6 @@ commonAnnotations:
 
 bases:
 - ../base
+
+patches:
+- manager_image_patch.yaml

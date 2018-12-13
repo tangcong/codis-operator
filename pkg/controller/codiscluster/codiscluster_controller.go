@@ -93,9 +93,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("watch codis cluster,err is %s\n", err)
 
-	// TODO(user): Modify this to be the types you create
-	// Uncomment watch a Deployment created by CodisCluster - change this for objects you create
+	// watch Deployment created by CodisCluster
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &codisv1alpha1.CodisCluster{},
@@ -103,6 +103,17 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("watch deployment,err is %s\n", err)
+
+	// watch Statefulset created by CodisCluster
+	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &codisv1alpha1.CodisCluster{},
+	})
+	if err != nil {
+		return err
+	}
+	log.Printf("watch statefulset,err is %s\n", err)
 
 	return nil
 }
