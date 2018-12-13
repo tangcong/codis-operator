@@ -1,0 +1,20 @@
+apiVersion: codis.k8s.io/v1alpha1
+kind: CodisCluster
+metadata:
+  labels:
+    app: codis-cluster
+  name: viptest 
+spec:
+  clusterName: viptest 
+  codisProxy:
+    replicas: 3
+    image: codis3.2:latest
+    sessionAuth: session
+  codisServer:
+    replicas: 4
+    groupReplicas: 2
+    image: codis3.2:latest
+  codisDashboard:
+    replicas: 1
+    image: codis3.2:latest
+    productAuth: product
