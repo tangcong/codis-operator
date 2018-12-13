@@ -1,5 +1,5 @@
 # Adds namespace to all resources.
-namespace: dev
+# namespace: dev
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
@@ -9,7 +9,7 @@ namespace: dev
 namePrefix: dev-
 
 # Labels to add to all resources and selectors.
-#commonLabels:
+# commonLabels:
 #  environment: dev 
 
 commonAnnotations:
@@ -22,14 +22,4 @@ commonAnnotations:
 # markers ("---").
 
 bases:
-- ../default
-
-patches:
-- manager_image_patch.yaml
-
-vars:
-- name: WEBHOOK_SECRET_NAME
-  objref:
-    kind: Secret
-    name: webhook-server-secret
-    apiVersion: v1
+- ../base
