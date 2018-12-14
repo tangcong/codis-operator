@@ -222,7 +222,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: webhook-server-secret
-  namespace: system
+  namespace: default
 ---
 apiVersion: v1
 kind: Service
@@ -231,7 +231,7 @@ metadata:
     control-plane: controller-manager
     controller-tools.k8s.io: "1.0"
   name: controller-manager-service
-  namespace: system
+  namespace: default
 spec:
   ports:
   - port: 443
@@ -246,7 +246,7 @@ metadata:
     control-plane: controller-manager
     controller-tools.k8s.io: "1.0"
   name: controller-manager
-  namespace: system
+  namespace: default
 spec:
   selector:
     matchLabels:

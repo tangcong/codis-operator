@@ -230,7 +230,7 @@ metadata:
   annotations:
     note: Hello,I am Development!
   name: dev-webhook-server-secret
-  namespace: system
+  namespace: default
 ---
 apiVersion: v1
 kind: Service
@@ -241,7 +241,7 @@ metadata:
     control-plane: controller-manager
     controller-tools.k8s.io: "1.0"
   name: dev-controller-manager-service
-  namespace: system
+  namespace: default
 spec:
   ports:
   - port: 443

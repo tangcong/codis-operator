@@ -8,16 +8,16 @@ spec:
   clusterName: codis-test
   codisProxy:
     replicas: 3
-    image: codis3.2:latest
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     sessionAuth: session
   codisServer:
     replicas: 4
     groupReplicas: 2
-    image: codis3.2:latest
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
   codisDashboard:
     replicas: 1
-    image: codis3.2:latest
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     productAuth: product
   codisFe:
     replicas: 2
-    image: codis3.2:latest
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
