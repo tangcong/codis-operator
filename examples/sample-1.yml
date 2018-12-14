@@ -21,3 +21,6 @@ spec:
   codisFe:
     replicas: 2
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+  sentinel:
+    replicas: 5
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest

@@ -26,6 +26,7 @@ import (
 	"github.com/tangcong/codis-operator/pkg/manager/fe"
 	"github.com/tangcong/codis-operator/pkg/manager/proxy"
 	"github.com/tangcong/codis-operator/pkg/manager/redis"
+	"github.com/tangcong/codis-operator/pkg/manager/sentinel"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -76,7 +77,8 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	dashboard := dashboard.NewDashboardManager(mgr.GetClient(), mgr.GetScheme(), recorder)
 	fe := fe.NewFeManager(mgr.GetClient(), mgr.GetScheme(), recorder)
 	redis := redis.NewRedisManager(mgr.GetClient(), mgr.GetScheme(), recorder)
-	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy, dashboard: dashboard, fe: fe, redis: redis}
+	sentinel := sentinel.NewSentinelManager(mgr.GetClient(), mgr.GetScheme(), recorder)
+	return &defaultCodisClusterControl{Client: mgr.GetClient(), scheme: mgr.GetScheme(), recorder: recorder, proxy: proxy, dashboard: dashboard, fe: fe, redis: redis, sentinel: sentinel}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -174,6 +176,7 @@ type defaultCodisClusterControl struct {
 	dashboard member.Manager
 	redis     member.Manager
 	fe        member.Manager
+	sentinel  member.Manager
 	recorder  record.EventRecorder
 }
 
@@ -182,17 +185,26 @@ func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.C
 	if err != nil {
 		log.Infof("Reconcile dashboard,err is %s\n", err)
 	}
+	log.Info("Reconcile dashboard succ\n")
 	err = ccc.proxy.Reconcile(cc)
 	if err != nil {
 		log.Infof("Reconcile Proxy,err is %s\n", err)
 	}
+	log.Info("Reconcile proxy succ\n")
 	err = ccc.fe.Reconcile(cc)
 	if err != nil {
 		log.Infof("Reconcile fe,err is %s\n", err)
 	}
+	log.Info("Reconcile fe succ\n")
 	err = ccc.redis.Reconcile(cc)
 	if err != nil {
 		log.Infof("Reconcile redis,err is %s\n", err)
 	}
+	log.Info("Reconcile redis succ\n")
+	err = ccc.sentinel.Reconcile(cc)
+	if err != nil {
+		log.Infof("Reconcile sentinel,err is %s\n", err)
+	}
+	log.Info("Reconcile Sentinel succ\n")
 	return err
 }

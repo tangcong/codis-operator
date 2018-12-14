@@ -68,6 +68,14 @@ spec:
               type: object
             schedulerName:
               type: string
+            sentinel:
+              properties:
+                replicas:
+                  format: int32
+                  type: integer
+              required:
+              - replicas
+              type: object
           required:
           - clusterName
           type: object
@@ -95,6 +103,13 @@ spec:
                   type: string
               type: object
             codisServer:
+              properties:
+                phase:
+                  type: string
+                statefulSet:
+                  type: object
+              type: object
+            sentinelStatus:
               properties:
                 phase:
                   type: string

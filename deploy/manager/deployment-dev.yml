@@ -70,6 +70,14 @@ spec:
               type: object
             schedulerName:
               type: string
+            sentinel:
+              properties:
+                replicas:
+                  format: int32
+                  type: integer
+              required:
+              - replicas
+              type: object
           required:
           - clusterName
           type: object
@@ -97,6 +105,13 @@ spec:
                   type: string
               type: object
             codisServer:
+              properties:
+                phase:
+                  type: string
+                statefulSet:
+                  type: object
+              type: object
+            sentinelStatus:
               properties:
                 phase:
                   type: string
@@ -222,7 +237,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: system
+  namespace: default 
 ---
 apiVersion: v1
 kind: Secret
@@ -264,6 +279,7 @@ spec:
     matchLabels:
       control-plane: controller-manager
       controller-tools.k8s.io: "1.0"
+  serviceName: dev-controller-manager-service
   serviceName: dev-controller-manager-service
   template:
     metadata:
