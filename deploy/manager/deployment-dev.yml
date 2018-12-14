@@ -258,7 +258,7 @@ metadata:
     control-plane: controller-manager
     controller-tools.k8s.io: "1.0"
   name: dev-controller-manager
-  namespace: system
+  namespace: default
 spec:
   selector:
     matchLabels:
