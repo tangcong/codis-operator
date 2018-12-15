@@ -32,7 +32,7 @@ Automatically deploy Prometheus,Grafana for Codis cluster monitoring.
 
 ## Getting Start
 
-![Codis Operator demo](./doc/images/codis-operator.gif)
+![Codis Operator demo](https://raw.githubusercontent.com/tangcong/codis-operator/master/doc/images/codis-operator.gif)
 
 ### Deploy Codis Operator
 	
