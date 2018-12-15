@@ -124,6 +124,23 @@ func (fm *feManager) syncCodisFeService(cc *v1alpha1.CodisCluster) error {
 	return nil
 }
 
+func (fm *feManager) populateArgVar(cc *v1alpha1.CodisCluster) []string {
+	var argList []string
+	//[]string{"--assets-dir", "$(CODIS_PATH)/bin/assets", "--$(COORDINATOR_NAME)", "$(COORDINATOR_ADDR)", "--listen", "$(POD_IP):9090"},
+	argList = append(argList, "--assets-dir")
+	argList = append(argList, "$(CODIS_PATH)/bin/assets")
+	if cc.Spec.CoordinatorName == "filesystem" {
+		argList = append(argList, "--dashboard-list")
+		argList = append(argList, "$(CODIS_PATH)/config/dashboard.txt")
+	} else {
+		argList = append(argList, "--$(COORDINATOR_NAME)")
+		argList = append(argList, "$(COORDINATOR_ADDR)")
+	}
+	argList = append(argList, "--listen")
+	argList = append(argList, "$(POD_IP):9090")
+	return argList
+}
+
 func (fm *feManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.EnvVar {
 	var envVarList []corev1.EnvVar
 	envVarList = append(envVarList, corev1.EnvVar{Name: "CODIS_PATH", Value: "/gopath/src/github.com/CodisLabs/codis"})
@@ -131,6 +148,8 @@ func (fm *feManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.EnvVar {
 	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"}}})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "DASHBOARD", Value: utils.GetDashboardSvr(cc)})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "COORDINATOR_NAME", Value: cc.Spec.CoordinatorName})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "COORDINATOR_ADDR", Value: cc.Spec.CoordinatorAddr})
 	return envVarList
 }
 
@@ -144,6 +163,8 @@ func (fm *feManager) getNewCodisFeDeployment(cc *v1alpha1.CodisCluster) *apps.De
 	}
 
 	envVarList := fm.populateEnvVar(cc)
+
+	argList := fm.populateArgVar(cc)
 
 	deploy := &apps.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -166,7 +187,7 @@ func (fm *feManager) getNewCodisFeDeployment(cc *v1alpha1.CodisCluster) *apps.De
 							ImagePullPolicy: "IfNotPresent",
 
 							Command: []string{"codis-fe"},
-							Args:    []string{"--assets-dir", "$(CODIS_PATH)/bin/assets", "--dashboard-list", "$(CODIS_PATH)/config/dashboard.txt", "--listen", "$(POD_IP):9090"},
+							Args:    argList,
 							Env:     envVarList,
 							Ports: []corev1.ContainerPort{
 								{Name: "fe-port", ContainerPort: 9090},

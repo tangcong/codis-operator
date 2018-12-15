@@ -6,6 +6,8 @@ metadata:
   name: sample
 spec:
   clusterName: codis-test
+  coordinatorName: filesystem
+  coordinatorAddr: builtin
   codisProxy:
     replicas: 3
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest

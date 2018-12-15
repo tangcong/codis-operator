@@ -6,6 +6,8 @@ metadata:
   name: viptest 
 spec:
   clusterName: viptest 
+  coordinatorName: filesystem
+  coordinatorAddr: builtin
   codisProxy:
     replicas: 3
     image: codis3.2:latest

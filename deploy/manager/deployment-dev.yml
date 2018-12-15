@@ -68,6 +68,10 @@ spec:
               - replicas
               - groupReplicas
               type: object
+            coordinatorAddr:
+              type: string
+            coordinatorName:
+              type: string
             schedulerName:
               type: string
             sentinel:
@@ -80,6 +84,8 @@ spec:
               type: object
           required:
           - clusterName
+          - coordinatorName
+          - coordinatorAddr
           type: object
         status:
           properties:
@@ -279,7 +285,6 @@ spec:
     matchLabels:
       control-plane: controller-manager
       controller-tools.k8s.io: "1.0"
-  serviceName: dev-controller-manager-service
   serviceName: dev-controller-manager-service
   template:
     metadata:

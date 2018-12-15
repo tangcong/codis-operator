@@ -129,6 +129,8 @@ func (dm *dashboardManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.E
 	var envVarList []corev1.EnvVar
 	envVarList = append(envVarList, corev1.EnvVar{Name: "CODIS_PATH", Value: "/gopath/src/github.com/CodisLabs/codis"})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "PRODUCT_NAME", Value: cc.Spec.ClusterName})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "COORDINATOR_NAME", Value: cc.Spec.CoordinatorName})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "COORDINATOR_ADDR", Value: cc.Spec.CoordinatorAddr})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"}}})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}})
 	return envVarList
@@ -166,7 +168,7 @@ func (dm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 							Image:           cc.Spec.CodisDashboard.Image,
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"codis-dashboard"},
-							Args:            []string{"-c", "$(CODIS_PATH)/config/dashboard.toml", "--host-admin", "$(POD_IP):18000", "--product_name", "$(PRODUCT_NAME)", "--product_auth", cc.Spec.CodisDashboard.ProductAuth},
+							Args:            []string{"--$(COORDINATOR_NAME)", "$(COORDINATOR_ADDR)", "-c", "$(CODIS_PATH)/config/dashboard.toml", "--host-admin", "$(POD_IP):18080", "--product_name", "$(PRODUCT_NAME)", "--product_auth", cc.Spec.CodisDashboard.ProductAuth},
 							Env:             envVarList,
 							Ports:           []corev1.ContainerPort{{Name: "dashboard", ContainerPort: 18080}},
 						},
