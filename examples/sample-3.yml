@@ -3,11 +3,11 @@ kind: CodisCluster
 metadata:
   labels:
     app: codis-cluster
-  name: sample
+  name: codis-test 
 spec:
-  clusterName: sample
   coordinatorName: etcd
-  coordinatorAddr: YOUR_ETCD_SERVICE_IP:2379
+  #coordinatorAddr: YOUR_ETCD_SERVICE_IP:2379
+  coordinatorAddr: 10.110.145.164:2379
   codisProxy:
     replicas: 3
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest

@@ -5,7 +5,8 @@ metadata:
     app: codis-cluster
   name: sample
 spec:
-  clusterName: codis-test
+  #coordinatorName: etcd
+  #coordinatorName: zookeeper
   coordinatorName: filesystem
   coordinatorAddr: builtin
   codisProxy:

@@ -32,7 +32,6 @@ type CodisCluster struct {
 // CodisClusterSpec describes the attributes that a user creates on a codis cluster
 type CodisClusterSpec struct {
 	SchedulerName   string             `json:"schedulerName,omitempty"`
-	ClusterName     string             `json:"clusterName"`
 	CodisProxy      CodisProxySpec     `json:"codisProxy,omitempty"`
 	CodisServer     CodisServerSpec    `json:"codisServer,omitempty"`
 	CodisDashboard  CodisDashboardSpec `json:"codisDashboard,omitempty"`

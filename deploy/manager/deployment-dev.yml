@@ -24,8 +24,6 @@ spec:
           type: object
         spec:
           properties:
-            clusterName:
-              type: string
             codisDashboard:
               properties:
                 productAuth:
@@ -83,7 +81,6 @@ spec:
               - replicas
               type: object
           required:
-          - clusterName
           - coordinatorName
           - coordinatorAddr
           type: object
@@ -243,7 +240,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: default 
+  namespace: default
 ---
 apiVersion: v1
 kind: Secret
