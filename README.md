@@ -34,15 +34,6 @@ Automatically deploy Prometheus,Grafana for Codis cluster monitoring.
 
 ![Codis Operator demo](https://raw.githubusercontent.com/tangcong/codis-operator/master/doc/images/codis-operator.gif)
 
-### EXAMPLE 
-
-![cluster info_1](./doc/images/1.png)
-
-![cluster info_2](./doc/images/2.png)
-
-![cluster info_3](./doc/images/3.png)
-
-![cluster info_4](./doc/images/4.png)
 
 ### Deploy Codis Operator
 	
@@ -60,6 +51,12 @@ kubectl create -f ./examples/sample-1.yml
 kubectl delete -f ./examples/sample-1.yml
 ```
 
+### SNAPSHOTS
 
+![cluster info_1](./doc/images/1.png)
 
+![cluster info_2](./doc/images/2.png)
 
+![cluster info_3](./doc/images/3.png)
+
+![cluster info_4](./doc/images/4.png)
