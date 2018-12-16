@@ -19,7 +19,7 @@ package codiscluster
 import (
 	"context"
 	"fmt"
-
+	log "github.com/golang/glog"
 	codisv1alpha1 "github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	member "github.com/tangcong/codis-operator/pkg/manager"
 	"github.com/tangcong/codis-operator/pkg/manager/dashboard"
@@ -30,10 +30,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	//	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	//"k8s.io/apimachinery/pkg/types"
-	log "github.com/golang/glog"
 	"k8s.io/client-go/kubernetes"
 	eventv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
@@ -45,11 +42,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new CodisCluster Controller and adds it to the Manager with default RBAC. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -150,22 +142,8 @@ func (r *defaultCodisClusterControl) Reconcile(request reconcile.Request) (recon
 		reason := fmt.Sprintf("Failed:%s", err)
 		msg := fmt.Sprintf("CodisCluster %s failed error: %s", cluster.GetName(), err)
 		r.recorder.Event(cluster, corev1.EventTypeWarning, reason, msg)
+		return reconcile.Result{}, err
 	}
-
-	/*
-		// TODO(user): Change this for the object type created by your controller
-		// Update the found object and write the result back if there are any changes
-		if !reflect.DeepEqual(deploy.Spec, found.Spec) {
-			found.Spec = deploy.Spec
-			log.Infof("Updating Deployment %s/%s\n", deploy.Namespace, deploy.Name)
-			err = r.Update(context.TODO(), found)
-			if err != nil {
-				return reconcile.Result{}, err
-			}
-		}
-	*/
-	//to do
-
 	return reconcile.Result{}, nil
 }
 
@@ -183,28 +161,28 @@ type defaultCodisClusterControl struct {
 func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.CodisCluster) error {
 	err := ccc.dashboard.Reconcile(cc)
 	if err != nil {
-		log.Infof("Reconcile dashboard,err is %s\n", err)
+		log.Infof("reconcile dashboard,err is %v", err)
 	}
-	log.Info("Reconcile dashboard succ\n")
+	log.Info("reconcile dashboard succ")
 	err = ccc.proxy.Reconcile(cc)
 	if err != nil {
-		log.Infof("Reconcile Proxy,err is %s\n", err)
+		log.Infof("reconcile Proxy,err is %v", err)
 	}
-	log.Info("Reconcile proxy succ\n")
+	log.Info("reconcile proxy succ")
 	err = ccc.fe.Reconcile(cc)
 	if err != nil {
-		log.Infof("Reconcile fe,err is %s\n", err)
+		log.Infof("reconcile fe,err is %v", err)
 	}
-	log.Info("Reconcile fe succ\n")
+	log.Info("reconcile fe succ")
 	err = ccc.redis.Reconcile(cc)
 	if err != nil {
-		log.Infof("Reconcile redis,err is %s\n", err)
+		log.Infof("reconcile redis,err is %v", err)
 	}
-	log.Info("Reconcile redis succ\n")
+	log.Info("reconcile redis succ")
 	err = ccc.sentinel.Reconcile(cc)
 	if err != nil {
-		log.Infof("Reconcile sentinel,err is %s\n", err)
+		log.Infof("reconcile sentinel,err is %v", err)
 	}
-	log.Info("Reconcile Sentinel succ\n")
+	log.Info("reconcile Sentinel succ")
 	return err
 }

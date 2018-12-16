@@ -3,6 +3,7 @@ package proxy
 import (
 	"context"
 	"fmt"
+	log "github.com/golang/glog"
 	"github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	"github.com/tangcong/codis-operator/pkg/manager"
 	"github.com/tangcong/codis-operator/pkg/utils"
@@ -15,8 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	//"sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	log "github.com/golang/glog"
 	"strings"
 )
 
@@ -88,20 +87,36 @@ func (pm *proxyManager) createService(cc *v1alpha1.CodisCluster, svc *corev1.Ser
 	if err := pm.client.Create(context.TODO(), svc); err != nil {
 		pm.recordServiceEvent("create", cc, svc, err)
 		return err
-	} else {
-		pm.recordServiceEvent("create", cc, svc, err)
-		return nil
 	}
+	pm.recordServiceEvent("create", cc, svc, nil)
+	return nil
+}
+
+func (pm *proxyManager) updateService(cc *v1alpha1.CodisCluster, svc *corev1.Service) error {
+	if err := pm.client.Update(context.TODO(), svc); err != nil {
+		pm.recordServiceEvent("update", cc, svc, err)
+		return err
+	}
+	pm.recordServiceEvent("update", cc, svc, nil)
+	return nil
 }
 
 func (pm *proxyManager) createDeploy(cc *v1alpha1.CodisCluster, deploy *apps.Deployment) error {
 	if err := pm.client.Create(context.TODO(), deploy); err != nil {
 		pm.recordDeployEvent("create", cc, deploy, err)
 		return err
-	} else {
-		pm.recordDeployEvent("create", cc, deploy, err)
-		return nil
 	}
+	pm.recordDeployEvent("create", cc, deploy, nil)
+	return nil
+}
+
+func (pm *proxyManager) updateDeploy(cc *v1alpha1.CodisCluster, deploy *apps.Deployment) error {
+	if err := pm.client.Update(context.TODO(), deploy); err != nil {
+		pm.recordDeployEvent("update", cc, deploy, err)
+		return err
+	}
+	pm.recordDeployEvent("update", cc, deploy, nil)
+	return nil
 }
 
 func (pm *proxyManager) syncCodisProxyService(cc *v1alpha1.CodisCluster) error {
@@ -113,15 +128,38 @@ func (pm *proxyManager) syncCodisProxyService(cc *v1alpha1.CodisCluster) error {
 	oldSvc := &corev1.Service{}
 	if err := pm.client.Get(context.TODO(), types.NamespacedName{Name: pm.getSvcName(ccName), Namespace: ns}, oldSvc); err != nil {
 		if errors.IsNotFound(err) {
+			err = utils.SetServiceLastAppliedConfig(newSvc)
+			if err != nil {
+				return nil
+			}
 			return pm.createService(cc, newSvc)
 		} else {
 			log.Infof("ns:%s,ccName:%s,get proxy svc err:%s", ns, ccName, err)
 			return err
 		}
-	} else {
-		log.Infof("ns:%s,ccName:%s,get proxy svc ok", ns, ccName)
 	}
-	//to do
+	log.Infof("ns:%s,ccName:%s,get proxy svc ok", ns, ccName)
+	//warning: if type is NodePort,UpdateService will make node port change,so serviceEqual only compares selector label.
+	if equal, err := utils.ServiceEqual(newSvc, oldSvc); err != nil {
+		log.Errorf("ns:%s,ccName:%s,proxy svc equal err:%s", ns, ccName, err)
+		return err
+	} else {
+		if !equal {
+			svc := *oldSvc
+			svc.Spec = newSvc.Spec
+			//ensure svc cluster ip sticky
+			svc.Spec.ClusterIP = oldSvc.Spec.ClusterIP
+			if err = utils.SetServiceLastAppliedConfig(&svc); err != nil {
+				log.Errorf("ns:%s,ccName:%s,set proxy svc annotation err:%v", ns, ccName, err)
+				return err
+			}
+			if err = pm.updateService(cc, &svc); err != nil {
+				log.Errorf("ns:%s,ccName:%s,update svc err:%v", ns, ccName, err)
+				return err
+			}
+			log.Infof("ns:%s,ccName:%s,update proxy svc succ", ns, ccName)
+		}
+	}
 	return nil
 }
 
@@ -192,15 +230,35 @@ func (pm *proxyManager) syncCodisProxyDeployment(cc *v1alpha1.CodisCluster) erro
 	oldCodisProxyDeploy := &apps.Deployment{}
 	if err := pm.client.Get(context.TODO(), types.NamespacedName{Name: pm.getDeployName(ccName), Namespace: ns}, oldCodisProxyDeploy); err != nil {
 		if errors.IsNotFound(err) {
+			err = utils.SetDeploymentLastAppliedConfig(newCodisProxyDeploy)
+			if err != nil {
+				return nil
+			}
 			return pm.createDeploy(cc, newCodisProxyDeploy)
 		} else {
 			log.Infof("ns:%s,ccName:%s,get proxy deployment err:%s", ns, ccName, err)
 			return err
 		}
-	} else {
-		log.Infof("ns:%s,ccName:%s,get proxy deployment info succ", ns, ccName)
 	}
-	//to do
+	log.Infof("ns:%s,ccName:%s,get proxy deployment info succ", ns, ccName)
+	if equal, err := utils.DeploymentEqual(newCodisProxyDeploy, oldCodisProxyDeploy); err != nil {
+		log.Errorf("ns:%s,ccName:%s,deployment equal err:%v", ns, ccName, err)
+		return err
+	} else {
+		if !equal {
+			deploy := *oldCodisProxyDeploy
+			deploy.Spec = newCodisProxyDeploy.Spec
+			if err = utils.SetDeploymentLastAppliedConfig(&deploy); err != nil {
+				log.Errorf("ns:%s,ccName:%s,set deployment annotation err:%v", ns, ccName, err)
+				return err
+			}
+			if err = pm.updateDeploy(cc, &deploy); err != nil {
+				log.Errorf("ns:%s,ccName:%s,update deployment err:%v", ns, ccName, err)
+				return err
+			}
+			log.Errorf("ns:%s,ccName:%s,deployment change,update succ", ns, ccName)
+		}
+	}
 	return nil
 }
 
