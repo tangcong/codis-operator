@@ -13,6 +13,10 @@ spec:
     replicas: 3
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     sessionAuth: session
+    hpaSpec:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUsedThreshold: 10
   codisServer:
     replicas: 4
     groupReplicas: 2
