@@ -6,6 +6,7 @@ import (
 	log "github.com/golang/glog"
 	"github.com/tangcong/codis-operator/pkg/apis/codis/v1alpha1"
 	apps "k8s.io/api/apps/v1"
+	as "k8s.io/api/autoscaling/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -101,6 +102,18 @@ func SetDeploymentLastAppliedConfig(deploy *apps.Deployment) error {
 	return nil
 }
 
+func SetHPALastAppliedConfig(hpa *as.HorizontalPodAutoscaler) error {
+	hpaSpec, err := encode(hpa.Spec)
+	if err != nil {
+		return err
+	}
+	if hpa.Annotations == nil {
+		hpa.Annotations = map[string]string{}
+	}
+	hpa.Annotations[LastAppliedConfigKey] = hpaSpec
+	return nil
+}
+
 func StatefulSetEqual(new *apps.StatefulSet, old *apps.StatefulSet) (bool, error) {
 	oldSpec := apps.StatefulSetSpec{}
 	if lastAppliedConfig, ok := old.Annotations[LastAppliedConfigKey]; ok {
@@ -135,6 +148,19 @@ func DeploymentEqual(new, old *apps.Deployment) (bool, error) {
 		err := json.Unmarshal([]byte(lastAppliedConfig), &oldSpec)
 		if err != nil {
 			log.Errorf("ns:%s,name:%s,unmarshal deployment err is %v", old.GetNamespace(), old.GetName(), err)
+			return false, err
+		}
+		return apiequality.Semantic.DeepEqual(oldSpec, new.Spec), nil
+	}
+	return false, nil
+}
+
+func HPAEqual(new, old *as.HorizontalPodAutoscaler) (bool, error) {
+	oldSpec := as.HorizontalPodAutoscalerSpec{}
+	if lastAppliedConfig, ok := old.Annotations[LastAppliedConfigKey]; ok {
+		err := json.Unmarshal([]byte(lastAppliedConfig), &oldSpec)
+		if err != nil {
+			log.Errorf("ns:%s,name:%s,unmarshal hpa err is %v", old.GetNamespace(), old.GetName(), err)
 			return false, err
 		}
 		return apiequality.Semantic.DeepEqual(oldSpec, new.Spec), nil

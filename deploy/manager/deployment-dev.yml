@@ -45,6 +45,22 @@ spec:
               type: object
             codisProxy:
               properties:
+                hpaSpec:
+                  properties:
+                    cpuUsedThreshold:
+                      format: int32
+                      type: integer
+                    maxReplicas:
+                      format: int32
+                      type: integer
+                    minReplicas:
+                      format: int32
+                      type: integer
+                  required:
+                  - minReplicas
+                  - maxReplicas
+                  - cpuUsedThreshold
+                  type: object
                 replicas:
                   format: int32
                   type: integer
@@ -168,6 +184,18 @@ rules:
   - ""
   resources:
   - events
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
   verbs:
   - get
   - list

@@ -41,6 +41,18 @@ rules:
   - patch
   - delete
 - apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
   - codis.k8s.io
   resources:
   - codisclusters

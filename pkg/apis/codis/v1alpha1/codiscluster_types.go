@@ -77,11 +77,18 @@ type ResourceRequirement struct {
 	Storage string `json:"storage,omitempty"`
 }
 
+type CodisProxyHPASpec struct {
+	MinReplicas      int32 `json:"minReplicas"`
+	MaxReplicas      int32 `json:"maxReplicas"`
+	CpuUsedThreshold int32 `json:"cpuUsedThreshold"`
+}
+
 // CodisProxySpec contains details of CodisProxy member
 type CodisProxySpec struct {
 	ContainerSpec
-	Replicas    int32  `json:"replicas"`
-	SessionAuth string `json:"sessionAuth"`
+	Replicas    int32             `json:"replicas"`
+	SessionAuth string            `json:"sessionAuth"`
+	HpaSpec     CodisProxyHPASpec `json:"hpaSpec,omitempty"`
 }
 
 // CodisServerSpec contains details of CodisServer member
