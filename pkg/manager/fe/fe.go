@@ -103,6 +103,15 @@ func (fm *feManager) createDeploy(cc *v1alpha1.CodisCluster, deploy *apps.Deploy
 	}
 }
 
+func (fm *feManager) updateDeploy(cc *v1alpha1.CodisCluster, deploy *apps.Deployment) error {
+	if err := fm.client.Update(context.TODO(), deploy); err != nil {
+		fm.recordDeployEvent("update", cc, deploy, err)
+		return err
+	}
+	fm.recordDeployEvent("update", cc, deploy, nil)
+	return nil
+}
+
 func (fm *feManager) syncCodisFeService(cc *v1alpha1.CodisCluster) error {
 	ns := cc.GetNamespace()
 	ccName := cc.GetName()
@@ -211,15 +220,36 @@ func (fm *feManager) syncCodisFeDeployment(cc *v1alpha1.CodisCluster) error {
 	oldCodisFeDeploy := &apps.Deployment{}
 	if err := fm.client.Get(context.TODO(), types.NamespacedName{Name: fm.getDeployName(ccName), Namespace: ns}, oldCodisFeDeploy); err != nil {
 		if errors.IsNotFound(err) {
+			err = utils.SetDeploymentLastAppliedConfig(newCodisFeDeploy)
+			if err != nil {
+				return nil
+			}
 			return fm.createDeploy(cc, newCodisFeDeploy)
 		} else {
 			log.Infof("ns:%s,ccName:%s,get fe deployment err:%s", ns, ccName, err)
 			return err
 		}
-	} else {
-		log.Infof("ns:%s,ccName:%s,get fe deployment info succ", ns, ccName)
 	}
-	//to do
+	log.Infof("ns:%s,ccName:%s,get fe deployment info succ", ns, ccName)
+
+	if equal, err := utils.DeploymentEqual(newCodisFeDeploy, oldCodisFeDeploy); err != nil {
+		log.Errorf("ns:%s,ccName:%s,deployment equal err:%v", ns, ccName, err)
+		return err
+	} else {
+		if !equal {
+			deploy := *oldCodisFeDeploy
+			deploy.Spec = newCodisFeDeploy.Spec
+			if err = utils.SetDeploymentLastAppliedConfig(&deploy); err != nil {
+				log.Errorf("ns:%s,ccName:%s,set deployment annotation err:%v", ns, ccName, err)
+				return err
+			}
+			if err = fm.updateDeploy(cc, &deploy); err != nil {
+				log.Errorf("ns:%s,ccName:%s,update deployment err:%v", ns, ccName, err)
+				return err
+			}
+			log.Errorf("ns:%s,ccName:%s,deployment change,update succ", ns, ccName)
+		}
+	}
 	return nil
 }
 

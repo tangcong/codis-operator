@@ -94,14 +94,22 @@ func (dm *dashboardManager) createService(cc *v1alpha1.CodisCluster, svc *corev1
 	}
 }
 
-func (dm *dashboardManager) createStatefulSet(cc *v1alpha1.CodisCluster, deploy *apps.StatefulSet) error {
-	if err := dm.client.Create(context.TODO(), deploy); err != nil {
-		dm.recordStatefulSetEvent("create", cc, deploy, err)
+func (dm *dashboardManager) createStatefulSet(cc *v1alpha1.CodisCluster, sts *apps.StatefulSet) error {
+	if err := dm.client.Create(context.TODO(), sts); err != nil {
+		dm.recordStatefulSetEvent("create", cc, sts, err)
 		return err
-	} else {
-		dm.recordStatefulSetEvent("create", cc, deploy, err)
-		return nil
 	}
+	dm.recordStatefulSetEvent("create", cc, sts, nil)
+	return nil
+}
+
+func (dm *dashboardManager) updateStatefulSet(cc *v1alpha1.CodisCluster, sts *apps.StatefulSet) error {
+	if err := dm.client.Update(context.TODO(), sts); err != nil {
+		dm.recordStatefulSetEvent("update", cc, sts, err)
+		return err
+	}
+	dm.recordStatefulSetEvent("update", cc, sts, nil)
+	return nil
 }
 
 func (dm *dashboardManager) syncCodisDashboardService(cc *v1alpha1.CodisCluster) error {
@@ -190,15 +198,35 @@ func (dm *dashboardManager) syncCodisDashboardStatefulSet(cc *v1alpha1.CodisClus
 	oldCodisDashboardStatefulSet := &apps.StatefulSet{}
 	if err := dm.client.Get(context.TODO(), types.NamespacedName{Name: dm.getStatefulSetName(ccName), Namespace: ns}, oldCodisDashboardStatefulSet); err != nil {
 		if errors.IsNotFound(err) {
+			err = utils.SetStsLastAppliedConfig(newCodisDashboardStatefulSet)
+			if err != nil {
+				return nil
+			}
 			return dm.createStatefulSet(cc, newCodisDashboardStatefulSet)
 		} else {
 			log.Infof("ns:%s,ccName:%s,get dashboard statefulset err:%s", ns, ccName, err)
 			return err
 		}
-	} else {
-		log.Infof("ns:%s,ccName:%s,get dashboard statefulset info succ", ns, ccName)
 	}
-	//to do
+	log.Infof("ns:%s,ccName:%s,get dashboard statefulset info succ", ns, ccName)
+	if equal, err := utils.StatefulSetEqual(newCodisDashboardStatefulSet, oldCodisDashboardStatefulSet); err != nil {
+		log.Errorf("ns:%s,ccName:%s,statefulset equal err:%v", ns, ccName, err)
+		return err
+	} else {
+		if !equal {
+			sts := *oldCodisDashboardStatefulSet
+			sts.Spec = newCodisDashboardStatefulSet.Spec
+			if err = utils.SetStsLastAppliedConfig(&sts); err != nil {
+				log.Errorf("ns:%s,ccName:%s,set statefulset annotation err:%v", ns, ccName, err)
+				return err
+			}
+			if err = dm.updateStatefulSet(cc, &sts); err != nil {
+				log.Errorf("ns:%s,ccName:%s,update statefulset err:%v", ns, ccName, err)
+				return err
+			}
+			log.Errorf("ns:%s,ccName:%s,statefulset change,update succ", ns, ccName)
+		}
+	}
 	return nil
 }
 

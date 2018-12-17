@@ -162,27 +162,32 @@ func (ccc *defaultCodisClusterControl) ReconcileCodisCluster(cc *codisv1alpha1.C
 	err := ccc.dashboard.Reconcile(cc)
 	if err != nil {
 		log.Infof("reconcile dashboard,err is %v", err)
+	} else {
+		log.Info("reconcile dashboard succ")
 	}
-	log.Info("reconcile dashboard succ")
 	err = ccc.proxy.Reconcile(cc)
 	if err != nil {
 		log.Infof("reconcile Proxy,err is %v", err)
+	} else {
+		log.Info("reconcile proxy succ")
 	}
-	log.Info("reconcile proxy succ")
 	err = ccc.fe.Reconcile(cc)
 	if err != nil {
 		log.Infof("reconcile fe,err is %v", err)
+	} else {
+		log.Info("reconcile fe succ")
 	}
-	log.Info("reconcile fe succ")
 	err = ccc.redis.Reconcile(cc)
 	if err != nil {
 		log.Infof("reconcile redis,err is %v", err)
+	} else {
+		log.Info("reconcile redis succ")
 	}
-	log.Info("reconcile redis succ")
 	err = ccc.sentinel.Reconcile(cc)
 	if err != nil {
 		log.Infof("reconcile sentinel,err is %v", err)
+	} else {
+		log.Info("reconcile Sentinel succ")
 	}
-	log.Info("reconcile Sentinel succ")
 	return err
 }

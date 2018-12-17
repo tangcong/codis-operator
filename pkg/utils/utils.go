@@ -101,7 +101,7 @@ func SetDeploymentLastAppliedConfig(deploy *apps.Deployment) error {
 	return nil
 }
 
-func StatefulSetEqual(new apps.StatefulSet, old apps.StatefulSet) (bool, error) {
+func StatefulSetEqual(new *apps.StatefulSet, old *apps.StatefulSet) (bool, error) {
 	oldSpec := apps.StatefulSetSpec{}
 	if lastAppliedConfig, ok := old.Annotations[LastAppliedConfigKey]; ok {
 		err := json.Unmarshal([]byte(lastAppliedConfig), &oldSpec)

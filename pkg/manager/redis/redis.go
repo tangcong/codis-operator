@@ -93,12 +93,22 @@ func (rm *redisManager) createService(cc *v1alpha1.CodisCluster, svc *corev1.Ser
 	}
 }
 
-func (rm *redisManager) createStatefulSet(cc *v1alpha1.CodisCluster, deploy *apps.StatefulSet) error {
-	if err := rm.client.Create(context.TODO(), deploy); err != nil {
-		rm.recordStatefulSetEvent("create", cc, deploy, err)
+func (rm *redisManager) createStatefulSet(cc *v1alpha1.CodisCluster, sts *apps.StatefulSet) error {
+	if err := rm.client.Create(context.TODO(), sts); err != nil {
+		rm.recordStatefulSetEvent("create", cc, sts, err)
 		return err
 	} else {
-		rm.recordStatefulSetEvent("create", cc, deploy, err)
+		rm.recordStatefulSetEvent("create", cc, sts, err)
+		return nil
+	}
+}
+
+func (rm *redisManager) updateStatefulSet(cc *v1alpha1.CodisCluster, sts *apps.StatefulSet) error {
+	if err := rm.client.Update(context.TODO(), sts); err != nil {
+		rm.recordStatefulSetEvent("update", cc, sts, err)
+		return err
+	} else {
+		rm.recordStatefulSetEvent("update", cc, sts, err)
 		return nil
 	}
 }
@@ -187,15 +197,35 @@ func (rm *redisManager) syncCodisServerStatefulSet(cc *v1alpha1.CodisCluster) er
 	oldCodisServerStatefulSet := &apps.StatefulSet{}
 	if err := rm.client.Get(context.TODO(), types.NamespacedName{Name: rm.getStatefulSetName(ccName), Namespace: ns}, oldCodisServerStatefulSet); err != nil {
 		if errors.IsNotFound(err) {
+			err = utils.SetStsLastAppliedConfig(newCodisServerStatefulSet)
+			if err != nil {
+				return nil
+			}
 			return rm.createStatefulSet(cc, newCodisServerStatefulSet)
 		} else {
 			log.Infof("ns:%s,ccName:%s,get codis server statefulset err:%s", ns, ccName, err)
 			return err
 		}
-	} else {
-		log.Infof("ns:%s,ccName:%s,get codis server statefulset succ", ns, ccName)
 	}
-	//to do
+	log.Infof("ns:%s,ccName:%s,get codis server statefulset succ", ns, ccName)
+	if equal, err := utils.StatefulSetEqual(newCodisServerStatefulSet, oldCodisServerStatefulSet); err != nil {
+		log.Errorf("ns:%s,ccName:%s,statefulset equal err:%v", ns, ccName, err)
+		return err
+	} else {
+		if !equal {
+			sts := *oldCodisServerStatefulSet
+			sts.Spec = newCodisServerStatefulSet.Spec
+			if err = utils.SetStsLastAppliedConfig(&sts); err != nil {
+				log.Errorf("ns:%s,ccName:%s,set statefulset annotation err:%v", ns, ccName, err)
+				return err
+			}
+			if err = rm.updateStatefulSet(cc, &sts); err != nil {
+				log.Errorf("ns:%s,ccName:%s,update statefulset err:%v", ns, ccName, err)
+				return err
+			}
+			log.Errorf("ns:%s,ccName:%s,statefulset change,update succ", ns, ccName)
+		}
+	}
 	return nil
 }
 

@@ -171,6 +171,9 @@ func (pm *proxyManager) populateEnvVar(cc *v1alpha1.CodisCluster) []corev1.EnvVa
 	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_IP", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "status.podIP"}}})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}})
 	envVarList = append(envVarList, corev1.EnvVar{Name: "DASHBOARD", Value: utils.GetDashboardSvr(cc)})
+	//fix bug,we have to recreate pod when dashboard backend storage addr changed.
+	envVarList = append(envVarList, corev1.EnvVar{Name: "COORDINATOR_ADDR", Value: cc.Spec.CoordinatorAddr})
+	envVarList = append(envVarList, corev1.EnvVar{Name: "COORDINATOR_NAME", Value: cc.Spec.CoordinatorName})
 	return envVarList
 }
 

@@ -93,12 +93,22 @@ func (sm *sentinelManager) createService(cc *v1alpha1.CodisCluster, svc *corev1.
 	}
 }
 
-func (sm *sentinelManager) createStatefulSet(cc *v1alpha1.CodisCluster, deploy *apps.StatefulSet) error {
-	if err := sm.client.Create(context.TODO(), deploy); err != nil {
-		sm.recordStatefulSetEvent("create", cc, deploy, err)
+func (sm *sentinelManager) createStatefulSet(cc *v1alpha1.CodisCluster, sts *apps.StatefulSet) error {
+	if err := sm.client.Create(context.TODO(), sts); err != nil {
+		sm.recordStatefulSetEvent("create", cc, sts, err)
 		return err
 	} else {
-		sm.recordStatefulSetEvent("create", cc, deploy, err)
+		sm.recordStatefulSetEvent("create", cc, sts, err)
+		return nil
+	}
+}
+
+func (sm *sentinelManager) updateStatefulSet(cc *v1alpha1.CodisCluster, sts *apps.StatefulSet) error {
+	if err := sm.client.Update(context.TODO(), sts); err != nil {
+		sm.recordStatefulSetEvent("update", cc, sts, err)
+		return err
+	} else {
+		sm.recordStatefulSetEvent("update", cc, sts, err)
 		return nil
 	}
 }
@@ -187,15 +197,35 @@ func (sm *sentinelManager) syncSentinelStatefulSet(cc *v1alpha1.CodisCluster) er
 	oldSentinelStatefulSet := &apps.StatefulSet{}
 	if err := sm.client.Get(context.TODO(), types.NamespacedName{Name: sm.getStatefulSetName(ccName), Namespace: ns}, oldSentinelStatefulSet); err != nil {
 		if errors.IsNotFound(err) {
+			err = utils.SetStsLastAppliedConfig(newSentinelStatefulSet)
+			if err != nil {
+				return nil
+			}
 			return sm.createStatefulSet(cc, newSentinelStatefulSet)
 		} else {
 			log.Infof("ns:%s,ccName:%s,get sentinel statefulset err:%s", ns, ccName, err)
 			return err
 		}
-	} else {
-		log.Infof("ns:%s,ccName:%s,get sentinel statefulset succ", ns, ccName)
 	}
-	//to do
+	log.Infof("ns:%s,ccName:%s,get sentinel statefulset succ", ns, ccName)
+	if equal, err := utils.StatefulSetEqual(newSentinelStatefulSet, oldSentinelStatefulSet); err != nil {
+		log.Errorf("ns:%s,ccName:%s,statefulset equal err:%v", ns, ccName, err)
+		return err
+	} else {
+		if !equal {
+			sts := *oldSentinelStatefulSet
+			sts.Spec = newSentinelStatefulSet.Spec
+			if err = utils.SetStsLastAppliedConfig(&sts); err != nil {
+				log.Errorf("ns:%s,ccName:%s,set statefulset annotation err:%v", ns, ccName, err)
+				return err
+			}
+			if err = sm.updateStatefulSet(cc, &sts); err != nil {
+				log.Errorf("ns:%s,ccName:%s,update statefulset err:%v", ns, ccName, err)
+				return err
+			}
+			log.Errorf("ns:%s,ccName:%s,statefulset change,update succ", ns, ccName)
+		}
+	}
 	return nil
 }
 
