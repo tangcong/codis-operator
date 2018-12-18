@@ -11,6 +11,16 @@ spec:
     replicas: 3
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     sessionAuth: session
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    hpaSpec:
+      minReplicas: 2
+      maxReplicas: 20
+      cpuUsedThreshold: 60
   codisServer:
     replicas: 4
     groupReplicas: 2

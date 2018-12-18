@@ -9,6 +9,7 @@ import (
 	as "k8s.io/api/autoscaling/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -166,4 +167,47 @@ func HPAEqual(new, old *as.HorizontalPodAutoscaler) (bool, error) {
 		return apiequality.Semantic.DeepEqual(oldSpec, new.Spec), nil
 	}
 	return false, nil
+}
+
+func ResourceRequirement(spec v1alpha1.ContainerSpec) corev1.ResourceRequirements {
+	rr := corev1.ResourceRequirements{}
+	if spec.Requests != nil {
+		if rr.Requests == nil {
+			rr.Requests = make(map[corev1.ResourceName]resource.Quantity)
+		}
+		if spec.Requests.CPU != "" {
+			if q, err := resource.ParseQuantity(spec.Requests.CPU); err != nil {
+				log.Errorf("failed to parse CPU resource %s to quantity: %v", spec.Requests.CPU, err)
+			} else {
+				rr.Requests[corev1.ResourceCPU] = q
+			}
+		}
+		if spec.Requests.Memory != "" {
+			if q, err := resource.ParseQuantity(spec.Requests.Memory); err != nil {
+				log.Errorf("failed to parse memory resource %s to quantity: %v", spec.Requests.Memory, err)
+			} else {
+				rr.Requests[corev1.ResourceMemory] = q
+			}
+		}
+	}
+	if spec.Limits != nil {
+		if rr.Limits == nil {
+			rr.Limits = make(map[corev1.ResourceName]resource.Quantity)
+		}
+		if spec.Limits.CPU != "" {
+			if q, err := resource.ParseQuantity(spec.Limits.CPU); err != nil {
+				log.Errorf("failed to parse CPU resource %s to quantity: %v", spec.Limits.CPU, err)
+			} else {
+				rr.Limits[corev1.ResourceCPU] = q
+			}
+		}
+		if spec.Limits.Memory != "" {
+			if q, err := resource.ParseQuantity(spec.Limits.Memory); err != nil {
+				log.Errorf("failed to parse memory resource %s to quantity: %v", spec.Limits.Memory, err)
+			} else {
+				rr.Limits[corev1.ResourceMemory] = q
+			}
+		}
+	}
+	return rr
 }
