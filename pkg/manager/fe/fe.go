@@ -196,9 +196,10 @@ func (fm *feManager) getNewCodisFeDeployment(cc *v1alpha1.CodisCluster) *apps.De
 							Image:           cc.Spec.CodisFe.Image,
 							ImagePullPolicy: "IfNotPresent",
 
-							Command: []string{"codis-fe"},
-							Args:    argList,
-							Env:     envVarList,
+							Command:   []string{"codis-fe"},
+							Args:      argList,
+							Env:       envVarList,
+							Resources: utils.ResourceRequirement(cc.Spec.CodisFe.ContainerSpec),
 							Ports: []corev1.ContainerPort{
 								{Name: "fe-port", ContainerPort: 9090},
 							},

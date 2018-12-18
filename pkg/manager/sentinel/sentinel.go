@@ -176,6 +176,7 @@ func (sm *sentinelManager) getNewSentinelStatefulSet(cc *v1alpha1.CodisCluster) 
 							Image:           cc.Spec.Sentinel.Image,
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"codis-server"},
+							Resources:       utils.ResourceRequirement(cc.Spec.Sentinel.ContainerSpec),
 							Args:            []string{"$(CODIS_PATH)/config/sentinel.conf", "--sentinel"},
 							Env:             envVarList,
 							Ports:           []corev1.ContainerPort{{Name: "sentinel-port", ContainerPort: 26379}},

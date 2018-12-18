@@ -178,6 +178,7 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 							Command:         []string{"codis-server"},
 							Args:            []string{"$(CODIS_PATH)/config/redis.conf"},
 							Env:             envVarList,
+							Resources:       utils.ResourceRequirement(cc.Spec.CodisServer.ContainerSpec),
 							Ports:           []corev1.ContainerPort{{Name: "redis", ContainerPort: 6379}},
 						},
 					},
