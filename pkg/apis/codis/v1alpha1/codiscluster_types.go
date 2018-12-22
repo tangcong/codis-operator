@@ -101,7 +101,8 @@ type CodisServerSpec struct {
 	Replicas      int32 `json:"replicas"`
 	GroupReplicas int32 `json:"groupReplicas"`
 	//When a partition is specified, all Pods with an ordinal that is greater than or equal to the partition will be updated when the StatefulSet’s .spec.template is updated. If a Pod that has an ordinal less than the partition is deleted or otherwise terminated, it will be restored to its original configuration.
-	Partition int32 `json:"partition,omitempty"`
+	Partition        int32   `json:"partition,omitempty"`
+	StorageClassName *string `json:"storageClassName,omitempty"`
 }
 
 // CodisDashboardSpec contains details of CodisDashboard
@@ -120,7 +121,8 @@ type CodisFeSpec struct {
 // SentinelSpec contains details of Sentinel
 type SentinelSpec struct {
 	ContainerSpec
-	Replicas int32 `json:"replicas"`
+	Replicas         int32   `json:"replicas"`
+	StorageClassName *string `json:"storageClassName,omitempty"`
 }
 
 type CodisProxyStatus struct {

@@ -87,6 +87,8 @@ spec:
                 replicas:
                   format: int32
                   type: integer
+                storageClassName:
+                  type: string
               required:
               - replicas
               - groupReplicas
@@ -102,6 +104,8 @@ spec:
                 replicas:
                   format: int32
                   type: integer
+                storageClassName:
+                  type: string
               required:
               - replicas
               type: object

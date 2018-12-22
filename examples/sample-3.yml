@@ -21,10 +21,14 @@ spec:
       minReplicas: 2
       maxReplicas: 20
       cpuUsedThreshold: 60
+    maxSurge: 1
+    maxUnavailable: 1
   codisServer:
     replicas: 4
     groupReplicas: 2
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+    partition: 0
+    storageClass: cbs
   codisDashboard:
     replicas: 1
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
@@ -35,3 +39,4 @@ spec:
   sentinel:
     replicas: 5
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+    storageClass: cbs

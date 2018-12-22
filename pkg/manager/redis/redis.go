@@ -47,6 +47,10 @@ func (rm *redisManager) getStatefulSetName(ccName string) string {
 	return ccName + "-redis"
 }
 
+func (rm *redisManager) getCodisServerVolumeName(ccName string) string {
+	return ccName + "-redis-volume"
+}
+
 func (rm *redisManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCluster, svc *corev1.Service, err error) {
 	ccName := cc.Name
 	svcName := svc.Name
@@ -155,6 +159,29 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 
 	envVarList := rm.populateEnvVar(cc)
 
+	//VolumeClaimTemplates []v1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty" protobuf:"bytes,4,rep,name=volumeClaimTemplates"`
+	pvcList := []corev1.PersistentVolumeClaim{}
+	volumeList := []corev1.Volume{}
+	//Volumes: []corev1.Volume{corev1.Volume{Name: rm.getCodisServerVolumeName(cc), EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+	if cc.Spec.CodisServer.StorageClassName != nil {
+		pvc := corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            rm.getCodisServerVolumeName(ccName),
+				Namespace:       ns,
+				OwnerReferences: []metav1.OwnerReference{utils.GetOwnerRef(cc)},
+			},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes:      []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
+				Resources:        utils.ResourceRequirement(cc.Spec.CodisServer.ContainerSpec),
+				StorageClassName: cc.Spec.CodisServer.StorageClassName,
+			},
+		}
+		pvcList = append(pvcList, pvc)
+	} else {
+		// EmptyDir represents a temporary directory that shares a pod's lifetime.
+		volume := corev1.Volume{Name: rm.getCodisServerVolumeName(ccName), VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}}
+		volumeList = append(volumeList, volume)
+	}
 	sts := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            rm.getStatefulSetName(ccName),
@@ -167,12 +194,14 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 			Selector: &metav1.LabelSelector{
 				MatchLabels: codisServerLabels,
 			},
+			VolumeClaimTemplates: pvcList,
 			//RollingUpdateStatefulSetStrategyType = "RollingUpdate"
 			//RollingUpdate *RollingUpdateStatefulSetStrategy `json:"rollingUpdate,omitempty" protobuf:"bytes,2,opt,name=rollingUpdate"`
 			UpdateStrategy: apps.StatefulSetUpdateStrategy{Type: apps.RollingUpdateStatefulSetStrategyType, RollingUpdate: &apps.RollingUpdateStatefulSetStrategy{Partition: &cc.Spec.CodisServer.Partition}},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: codisServerLabels},
 				Spec: corev1.PodSpec{
+					Volumes: volumeList,
 					Containers: []corev1.Container{
 						{
 							Name:            "codis-server",
@@ -183,6 +212,7 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 							Env:             envVarList,
 							Resources:       utils.ResourceRequirement(cc.Spec.CodisServer.ContainerSpec),
 							Ports:           []corev1.ContainerPort{{Name: "redis", ContainerPort: 6379}},
+							VolumeMounts:    []corev1.VolumeMount{corev1.VolumeMount{Name: rm.getCodisServerVolumeName(ccName), MountPath: "/data"}},
 						},
 					},
 				},

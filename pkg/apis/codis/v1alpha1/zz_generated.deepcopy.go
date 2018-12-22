@@ -262,6 +262,11 @@ func (in *CodisProxyStatus) DeepCopy() *CodisProxyStatus {
 func (in *CodisServerSpec) DeepCopyInto(out *CodisServerSpec) {
 	*out = *in
 	in.ContainerSpec.DeepCopyInto(&out.ContainerSpec)
+	if in.StorageClassName != nil {
+		in, out := &in.StorageClassName, &out.StorageClassName
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
@@ -342,6 +347,11 @@ func (in *ResourceRequirement) DeepCopy() *ResourceRequirement {
 func (in *SentinelSpec) DeepCopyInto(out *SentinelSpec) {
 	*out = *in
 	in.ContainerSpec.DeepCopyInto(&out.ContainerSpec)
+	if in.StorageClassName != nil {
+		in, out := &in.StorageClassName, &out.StorageClassName
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

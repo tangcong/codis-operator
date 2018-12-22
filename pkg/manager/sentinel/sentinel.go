@@ -47,6 +47,10 @@ func (sm *sentinelManager) getStatefulSetName(ccName string) string {
 	return ccName + "-redis-sentinel"
 }
 
+func (sm *sentinelManager) getSentinelVolumeName(ccName string) string {
+	return ccName + "-redis-sentinel-volume"
+}
+
 func (sm *sentinelManager) recordServiceEvent(verb string, cc *v1alpha1.CodisCluster, svc *corev1.Service, err error) {
 	ccName := cc.Name
 	svcName := svc.Name
@@ -155,6 +159,28 @@ func (sm *sentinelManager) getNewSentinelStatefulSet(cc *v1alpha1.CodisCluster) 
 
 	envVarList := sm.populateEnvVar(cc)
 
+	volumeList := []corev1.Volume{}
+	pvcList := []corev1.PersistentVolumeClaim{}
+	if cc.Spec.Sentinel.StorageClassName != nil {
+		pvc := corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            sm.getSentinelVolumeName(ccName),
+				Namespace:       ns,
+				OwnerReferences: []metav1.OwnerReference{utils.GetOwnerRef(cc)},
+			},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes:      []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
+				Resources:        utils.ResourceRequirement(cc.Spec.Sentinel.ContainerSpec),
+				StorageClassName: cc.Spec.Sentinel.StorageClassName,
+			},
+		}
+		pvcList = append(pvcList, pvc)
+	} else {
+
+		// EmptyDir represents a temporary directory that shares a pod's lifetime.
+		volume := corev1.Volume{Name: sm.getSentinelVolumeName(ccName), VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}}
+		volumeList = append(volumeList, volume)
+	}
 	sts := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            sm.getStatefulSetName(ccName),
@@ -167,9 +193,11 @@ func (sm *sentinelManager) getNewSentinelStatefulSet(cc *v1alpha1.CodisCluster) 
 			Selector: &metav1.LabelSelector{
 				MatchLabels: sentinelLabels,
 			},
+			VolumeClaimTemplates: pvcList,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: sentinelLabels},
 				Spec: corev1.PodSpec{
+					Volumes: volumeList,
 					Containers: []corev1.Container{
 						{
 							Name:            "redis-sentinel",
@@ -180,6 +208,7 @@ func (sm *sentinelManager) getNewSentinelStatefulSet(cc *v1alpha1.CodisCluster) 
 							Args:            []string{"$(CODIS_PATH)/config/sentinel.conf", "--sentinel"},
 							Env:             envVarList,
 							Ports:           []corev1.ContainerPort{{Name: "sentinel-port", ContainerPort: 26379}},
+							VolumeMounts:    []corev1.VolumeMount{corev1.VolumeMount{Name: sm.getSentinelVolumeName(ccName), MountPath: "/data"}},
 						},
 					},
 				},

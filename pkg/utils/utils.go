@@ -189,6 +189,14 @@ func ResourceRequirement(spec v1alpha1.ContainerSpec) corev1.ResourceRequirement
 				rr.Requests[corev1.ResourceMemory] = q
 			}
 		}
+
+		if spec.Requests.Storage != "" {
+			if q, err := resource.ParseQuantity(spec.Requests.Storage); err != nil {
+				log.Errorf("failed to parse storage resource %s to quantity: %v", spec.Requests.Storage, err)
+			} else {
+				rr.Requests[corev1.ResourceStorage] = q
+			}
+		}
 	}
 	if spec.Limits != nil {
 		if rr.Limits == nil {
@@ -206,6 +214,14 @@ func ResourceRequirement(spec v1alpha1.ContainerSpec) corev1.ResourceRequirement
 				log.Errorf("failed to parse memory resource %s to quantity: %v", spec.Limits.Memory, err)
 			} else {
 				rr.Limits[corev1.ResourceMemory] = q
+			}
+		}
+
+		if spec.Limits.Storage != "" {
+			if q, err := resource.ParseQuantity(spec.Limits.Storage); err != nil {
+				log.Errorf("failed to parse storage resource %s to quantity: %v", spec.Limits.Storage, err)
+			} else {
+				rr.Limits[corev1.ResourceStorage] = q
 			}
 		}
 	}
