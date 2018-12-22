@@ -167,6 +167,9 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 			Selector: &metav1.LabelSelector{
 				MatchLabels: codisServerLabels,
 			},
+			//RollingUpdateStatefulSetStrategyType = "RollingUpdate"
+			//RollingUpdate *RollingUpdateStatefulSetStrategy `json:"rollingUpdate,omitempty" protobuf:"bytes,2,opt,name=rollingUpdate"`
+			UpdateStrategy: apps.StatefulSetUpdateStrategy{Type: apps.RollingUpdateStatefulSetStrategyType, RollingUpdate: &apps.RollingUpdateStatefulSetStrategy{Partition: &cc.Spec.CodisServer.Partition}},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: codisServerLabels},
 				Spec: corev1.PodSpec{

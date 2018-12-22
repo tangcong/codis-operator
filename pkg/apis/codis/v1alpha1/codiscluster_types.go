@@ -89,6 +89,10 @@ type CodisProxySpec struct {
 	Replicas    int32             `json:"replicas"`
 	SessionAuth string            `json:"sessionAuth"`
 	HpaSpec     CodisProxyHPASpec `json:"hpaSpec,omitempty"`
+	//how many pods we can add at a time
+	MaxSurge int `json:"maxSurge,omitempty"`
+	//MaxUnavailable define how many pods can be unavailable during the rolling update
+	MaxUnavailable int `json:"maxUnavailable,omitempty"`
 }
 
 // CodisServerSpec contains details of CodisServer member
@@ -96,6 +100,8 @@ type CodisServerSpec struct {
 	ContainerSpec
 	Replicas      int32 `json:"replicas"`
 	GroupReplicas int32 `json:"groupReplicas"`
+	//When a partition is specified, all Pods with an ordinal that is greater than or equal to the partition will be updated when the StatefulSet’s .spec.template is updated. If a Pod that has an ordinal less than the partition is deleted or otherwise terminated, it will be restored to its original configuration.
+	Partition int32 `json:"partition,omitempty"`
 }
 
 // CodisDashboardSpec contains details of CodisDashboard

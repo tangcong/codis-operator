@@ -23,10 +23,13 @@ spec:
       minReplicas: 1
       maxReplicas: 5
       cpuUsedThreshold: 10
+    maxSurge: 1
+    maxUnavailable: 1
   codisServer:
     replicas: 4
     groupReplicas: 2
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+    partition: 0
   codisDashboard:
     replicas: 1
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest

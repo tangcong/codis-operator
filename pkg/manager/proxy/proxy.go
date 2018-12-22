@@ -237,6 +237,9 @@ func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *a
 	}
 
 	envVarList := pm.populateEnvVar(cc)
+	maxUnavailable := intstr.FromInt(cc.Spec.CodisProxy.MaxUnavailable)
+	maxSurge := intstr.FromInt(cc.Spec.CodisProxy.MaxSurge)
+	//Strategy: apps.DeploymentStrategy{Type: apps.RollingUpdateDeploymentStrategyType, RollingUpdate: apps.RollingUpdateDeployment{MaxUnavailable: &MaxUnavailable, MaxSurge: &(intstr.FromInt(cc.Spec.CodisProxy.MaxSurge))}},
 
 	deploy := &apps.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -249,6 +252,10 @@ func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *a
 			Selector: &metav1.LabelSelector{
 				MatchLabels: codisProxyLabels,
 			},
+
+			//MaxUnavailable *intstr.IntOrString `json:"maxUnavailable,omitempty" protobuf:"bytes,1,opt,name=maxUnavailable"`
+			//MaxSurge *intstr.IntOrString `json:"maxSurge,omitempty" protobuf:"bytes,2,opt,name=maxSurge"`
+			Strategy: apps.DeploymentStrategy{Type: apps.RollingUpdateDeploymentStrategyType, RollingUpdate: &apps.RollingUpdateDeployment{MaxUnavailable: &maxUnavailable, MaxSurge: &maxSurge}},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: codisProxyLabels},
 				Spec: corev1.PodSpec{

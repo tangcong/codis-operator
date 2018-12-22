@@ -59,6 +59,12 @@ spec:
                   - maxReplicas
                   - cpuUsedThreshold
                   type: object
+                maxSurge:
+                  format: int64
+                  type: integer
+                maxUnavailable:
+                  format: int64
+                  type: integer
                 replicas:
                   format: int32
                   type: integer
@@ -71,6 +77,9 @@ spec:
             codisServer:
               properties:
                 groupReplicas:
+                  format: int32
+                  type: integer
+                partition:
                   format: int32
                   type: integer
                 replicas:
