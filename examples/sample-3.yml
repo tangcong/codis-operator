@@ -3,8 +3,10 @@ kind: CodisCluster
 metadata:
   labels:
     app: codis-cluster
-  name: codis-test 
+  name: sample
 spec:
+  #coordinatorName: etcd
+  #coordinatorName: zookeeper
   coordinatorName: etcd
   coordinatorAddr: YOUR_ETCD_SERVICE_IP:2379
   codisProxy:
@@ -12,31 +14,47 @@ spec:
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     sessionAuth: session
     requests:
-      cpu: 50m
-      memory: 100Mi
+      cpu: 200m
+      memory: 200Mi
     limits:
-      cpu: 100m
-      memory: 100Mi
+      cpu: 250m
+      memory: 250Mi
     hpaSpec:
-      minReplicas: 2
-      maxReplicas: 20
-      cpuUsedThreshold: 60
+      minReplicas: 1
+      maxReplicas: 3
+      cpuUsedThreshold: 10
     maxSurge: 1
     maxUnavailable: 1
   codisServer:
-    replicas: 4
+    requests:
+      cpu: 200m
+      memory: 200Mi
+      storage: 10Gi
+    limits:
+      cpu: 250m
+      memory: 250Mi
+      storage: 50Gi
+    replicas: 2
     groupReplicas: 2
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     partition: 0
-    storageClass: cbs
+    storageClassName: cbs
   codisDashboard:
     replicas: 1
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     productAuth: product
   codisFe:
-    replicas: 2
+    replicas: 1
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
   sentinel:
-    replicas: 5
+    requests:
+      cpu: 200m
+      memory: 200Mi
+      storage: 10Gi
+    limits:
+      cpu: 250m
+      memory: 250Mi
+      storage: 50Gi
+    replicas: 3
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
-    storageClass: cbs
+    storageClassName: cbs
