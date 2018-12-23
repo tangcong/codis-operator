@@ -3,19 +3,58 @@ kind: CodisCluster
 metadata:
   labels:
     app: codis-cluster
-  name: viptest 
+  name: sample
 spec:
+  #coordinatorName: etcd
+  #coordinatorName: zookeeper
   coordinatorName: filesystem
   coordinatorAddr: builtin
   codisProxy:
     replicas: 3
-    image: codis3.2:latest
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     sessionAuth: session
+    requests:
+      cpu: 200m
+      memory: 200Mi
+    limits:
+      cpu: 250m
+      memory: 250Mi
+    hpaSpec:
+      minReplicas: 1
+      maxReplicas: 3
+      cpuUsedThreshold: 10
+    maxSurge: 1
+    maxUnavailable: 1
   codisServer:
-    replicas: 4
+    requests:
+      cpu: 200m
+      memory: 200Mi
+      storage: 10Gi
+    limits:
+      cpu: 250m
+      memory: 250Mi
+      storage: 50Gi
+    replicas: 2
     groupReplicas: 2
-    image: codis3.2:latest
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+    partition: 0
+    storageClassName: cbs
   codisDashboard:
     replicas: 1
-    image: codis3.2:latest
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     productAuth: product
+  codisFe:
+    replicas: 1
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+  sentinel:
+    requests:
+      cpu: 200m
+      memory: 200Mi
+      storage: 10Gi
+    limits:
+      cpu: 250m
+      memory: 250Mi
+      storage: 50Gi
+    replicas: 3
+    image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+    storageClassName: cbs
