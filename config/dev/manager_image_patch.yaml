@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: controller-manager
-  namespace: default
+  name: codis-operator
+  namespace: system
 spec:
   template:
     spec:
       containers:
       # Change the value of image field below to your controller image URL
       - image: ccr.ccs.tencentyun.com/codis/codis-operator:latest
-        name: manager
+        name: codis-operator
         imagePullPolicy: IfNotPresent

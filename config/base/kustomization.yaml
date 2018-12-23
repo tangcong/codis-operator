@@ -21,6 +21,7 @@ resources:
 - ../rbac/rbac_role.yaml
 - ../rbac/rbac_role_binding.yaml
 - ../manager/manager.yaml
+- ../manager/sa.yaml
 - ../crds/codis_v1alpha1_codiscluster.yaml
 
 patches:

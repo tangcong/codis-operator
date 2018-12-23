@@ -1,3 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: system
+---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -159,6 +164,12 @@ status:
   conditions: []
   storedVersions: []
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: system
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -281,41 +292,41 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: webhook-server-secret
-  namespace: default
+  namespace: system
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: codis-operator
     controller-tools.k8s.io: "1.0"
-  name: controller-manager-service
-  namespace: default
+  name: codis-operator-service
+  namespace: system
 spec:
   ports:
   - port: 443
   selector:
-    control-plane: controller-manager
+    control-plane: codis-operator
     controller-tools.k8s.io: "1.0"
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: codis-operator
     controller-tools.k8s.io: "1.0"
-  name: controller-manager
-  namespace: default
+  name: codis-operator
+  namespace: system
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: codis-operator
       controller-tools.k8s.io: "1.0"
-  serviceName: controller-manager-service
+  serviceName: codis-operator-service
   template:
     metadata:
       labels:
-        control-plane: controller-manager
+        control-plane: codis-operator
         controller-tools.k8s.io: "1.0"
     spec:
       containers:
@@ -330,7 +341,7 @@ spec:
           value: webhook-server-secret
         image: ccr.ccs.tencentyun.com/codis/codis-operator:latest
         imagePullPolicy: Always
-        name: manager
+        name: codis-operator
         ports:
         - containerPort: 9876
           name: webhook-server
@@ -346,6 +357,7 @@ spec:
         - mountPath: /tmp/cert
           name: cert
           readOnly: true
+      serviceAccountName: default
       terminationGracePeriodSeconds: 10
       volumes:
       - name: cert
