@@ -197,7 +197,9 @@ func (sm *sentinelManager) getNewSentinelStatefulSet(cc *v1alpha1.CodisCluster) 
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: sentinelLabels},
 				Spec: corev1.PodSpec{
-					Volumes: volumeList,
+					Volumes:      volumeList,
+					NodeSelector: cc.Spec.Sentinel.NodeSelector,
+					Tolerations:  cc.Spec.Sentinel.Tolerations,
 					Containers: []corev1.Container{
 						{
 							Name:            "redis-sentinel",

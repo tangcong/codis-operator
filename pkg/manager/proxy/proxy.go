@@ -259,6 +259,8 @@ func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *a
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: codisProxyLabels},
 				Spec: corev1.PodSpec{
+					NodeSelector: cc.Spec.CodisProxy.NodeSelector,
+					Tolerations:  cc.Spec.CodisProxy.Tolerations,
 					Containers: []corev1.Container{
 						{
 							Name:            "codis-proxy",

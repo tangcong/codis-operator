@@ -4,7 +4,6 @@ import (
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//"k8s.io/apimachinery/pkg/types"
 )
 
 // MemberPhase is the current state of member
@@ -92,7 +91,9 @@ type CodisProxySpec struct {
 	//how many pods we can add at a time
 	MaxSurge int `json:"maxSurge,omitempty"`
 	//MaxUnavailable define how many pods can be unavailable during the rolling update
-	MaxUnavailable int `json:"maxUnavailable,omitempty"`
+	MaxUnavailable int                 `json:"maxUnavailable,omitempty"`
+	NodeSelector   map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations    []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // CodisServerSpec contains details of CodisServer member
@@ -101,8 +102,10 @@ type CodisServerSpec struct {
 	Replicas      int32 `json:"replicas"`
 	GroupReplicas int32 `json:"groupReplicas"`
 	//When a partition is specified, all Pods with an ordinal that is greater than or equal to the partition will be updated when the StatefulSet’s .spec.template is updated. If a Pod that has an ordinal less than the partition is deleted or otherwise terminated, it will be restored to its original configuration.
-	Partition        int32   `json:"partition,omitempty"`
-	StorageClassName *string `json:"storageClassName,omitempty"`
+	Partition        int32               `json:"partition,omitempty"`
+	StorageClassName *string             `json:"storageClassName,omitempty"`
+	NodeSelector     map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations      []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // CodisDashboardSpec contains details of CodisDashboard
@@ -121,8 +124,10 @@ type CodisFeSpec struct {
 // SentinelSpec contains details of Sentinel
 type SentinelSpec struct {
 	ContainerSpec
-	Replicas         int32   `json:"replicas"`
-	StorageClassName *string `json:"storageClassName,omitempty"`
+	Replicas         int32               `json:"replicas"`
+	StorageClassName *string             `json:"storageClassName,omitempty"`
+	NodeSelector     map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations      []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 type CodisProxyStatus struct {

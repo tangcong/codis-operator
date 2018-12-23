@@ -70,11 +70,17 @@ spec:
                 maxUnavailable:
                   format: int64
                   type: integer
+                nodeSelector:
+                  type: object
                 replicas:
                   format: int32
                   type: integer
                 sessionAuth:
                   type: string
+                tolerations:
+                  items:
+                    type: object
+                  type: array
               required:
               - replicas
               - sessionAuth
@@ -84,6 +90,8 @@ spec:
                 groupReplicas:
                   format: int32
                   type: integer
+                nodeSelector:
+                  type: object
                 partition:
                   format: int32
                   type: integer
@@ -92,6 +100,10 @@ spec:
                   type: integer
                 storageClassName:
                   type: string
+                tolerations:
+                  items:
+                    type: object
+                  type: array
               required:
               - replicas
               - groupReplicas
@@ -104,11 +116,17 @@ spec:
               type: string
             sentinel:
               properties:
+                nodeSelector:
+                  type: object
                 replicas:
                   format: int32
                   type: integer
                 storageClassName:
                   type: string
+                tolerations:
+                  items:
+                    type: object
+                  type: array
               required:
               - replicas
               type: object

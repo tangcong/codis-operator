@@ -201,7 +201,9 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{Labels: codisServerLabels},
 				Spec: corev1.PodSpec{
-					Volumes: volumeList,
+					NodeSelector: cc.Spec.CodisServer.NodeSelector,
+					Tolerations:  cc.Spec.CodisServer.Tolerations,
+					Volumes:      volumeList,
 					Containers: []corev1.Container{
 						{
 							Name:            "codis-server",

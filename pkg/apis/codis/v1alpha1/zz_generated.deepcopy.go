@@ -21,6 +21,7 @@ package v1alpha1
 
 import (
 	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -224,6 +225,20 @@ func (in *CodisProxySpec) DeepCopyInto(out *CodisProxySpec) {
 	*out = *in
 	in.ContainerSpec.DeepCopyInto(&out.ContainerSpec)
 	out.HpaSpec = in.HpaSpec
+	if in.NodeSelector != nil {
+		in, out := &in.NodeSelector, &out.NodeSelector
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -266,6 +281,20 @@ func (in *CodisServerSpec) DeepCopyInto(out *CodisServerSpec) {
 		in, out := &in.StorageClassName, &out.StorageClassName
 		*out = new(string)
 		**out = **in
+	}
+	if in.NodeSelector != nil {
+		in, out := &in.NodeSelector, &out.NodeSelector
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }
@@ -351,6 +380,20 @@ func (in *SentinelSpec) DeepCopyInto(out *SentinelSpec) {
 		in, out := &in.StorageClassName, &out.StorageClassName
 		*out = new(string)
 		**out = **in
+	}
+	if in.NodeSelector != nil {
+		in, out := &in.NodeSelector, &out.NodeSelector
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]corev1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }
