@@ -199,7 +199,7 @@ func (fm *feManager) getNewCodisFeDeployment(cc *v1alpha1.CodisCluster) *apps.De
 							Command:   []string{"codis-fe"},
 							Args:      argList,
 							Env:       envVarList,
-							Resources: utils.ResourceRequirement(cc.Spec.CodisFe.ContainerSpec),
+							Resources: utils.ResourceRequirement(cc.Spec.CodisFe.ContainerSpec, false),
 							Ports: []corev1.ContainerPort{
 								{Name: "fe-port", ContainerPort: 9090},
 							},

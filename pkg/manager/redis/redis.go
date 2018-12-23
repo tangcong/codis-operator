@@ -172,7 +172,7 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 			},
 			Spec: corev1.PersistentVolumeClaimSpec{
 				AccessModes:      []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
-				Resources:        utils.ResourceRequirement(cc.Spec.CodisServer.ContainerSpec),
+				Resources:        utils.ResourceRequirement(cc.Spec.CodisServer.ContainerSpec, true),
 				StorageClassName: cc.Spec.CodisServer.StorageClassName,
 			},
 		}
@@ -210,7 +210,7 @@ func (rm *redisManager) getNewCodisServerStatefulSet(cc *v1alpha1.CodisCluster) 
 							Command:         []string{"codis-server"},
 							Args:            []string{"$(CODIS_PATH)/config/redis.conf"},
 							Env:             envVarList,
-							Resources:       utils.ResourceRequirement(cc.Spec.CodisServer.ContainerSpec),
+							Resources:       utils.ResourceRequirement(cc.Spec.CodisServer.ContainerSpec, false),
 							Ports:           []corev1.ContainerPort{{Name: "redis", ContainerPort: 6379}},
 							VolumeMounts:    []corev1.VolumeMount{corev1.VolumeMount{Name: rm.getCodisServerVolumeName(ccName), MountPath: "/data"}},
 						},

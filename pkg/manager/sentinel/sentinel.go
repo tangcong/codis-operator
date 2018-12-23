@@ -170,7 +170,7 @@ func (sm *sentinelManager) getNewSentinelStatefulSet(cc *v1alpha1.CodisCluster) 
 			},
 			Spec: corev1.PersistentVolumeClaimSpec{
 				AccessModes:      []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
-				Resources:        utils.ResourceRequirement(cc.Spec.Sentinel.ContainerSpec),
+				Resources:        utils.ResourceRequirement(cc.Spec.Sentinel.ContainerSpec, true),
 				StorageClassName: cc.Spec.Sentinel.StorageClassName,
 			},
 		}
@@ -204,7 +204,7 @@ func (sm *sentinelManager) getNewSentinelStatefulSet(cc *v1alpha1.CodisCluster) 
 							Image:           cc.Spec.Sentinel.Image,
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"codis-server"},
-							Resources:       utils.ResourceRequirement(cc.Spec.Sentinel.ContainerSpec),
+							Resources:       utils.ResourceRequirement(cc.Spec.Sentinel.ContainerSpec, false),
 							Args:            []string{"$(CODIS_PATH)/config/sentinel.conf", "--sentinel"},
 							Env:             envVarList,
 							Ports:           []corev1.ContainerPort{{Name: "sentinel-port", ContainerPort: 26379}},

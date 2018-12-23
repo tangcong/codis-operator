@@ -169,20 +169,20 @@ func HPAEqual(new, old *as.HorizontalPodAutoscaler) (bool, error) {
 	return false, nil
 }
 
-func ResourceRequirement(spec v1alpha1.ContainerSpec) corev1.ResourceRequirements {
+func ResourceRequirement(spec v1alpha1.ContainerSpec, isPvc bool) corev1.ResourceRequirements {
 	rr := corev1.ResourceRequirements{}
 	if spec.Requests != nil {
 		if rr.Requests == nil {
 			rr.Requests = make(map[corev1.ResourceName]resource.Quantity)
 		}
-		if spec.Requests.CPU != "" {
+		if spec.Requests.CPU != "" && isPvc == false {
 			if q, err := resource.ParseQuantity(spec.Requests.CPU); err != nil {
 				log.Errorf("failed to parse CPU resource %s to quantity: %v", spec.Requests.CPU, err)
 			} else {
 				rr.Requests[corev1.ResourceCPU] = q
 			}
 		}
-		if spec.Requests.Memory != "" {
+		if spec.Requests.Memory != "" && isPvc == false {
 			if q, err := resource.ParseQuantity(spec.Requests.Memory); err != nil {
 				log.Errorf("failed to parse memory resource %s to quantity: %v", spec.Requests.Memory, err)
 			} else {
@@ -190,7 +190,7 @@ func ResourceRequirement(spec v1alpha1.ContainerSpec) corev1.ResourceRequirement
 			}
 		}
 
-		if spec.Requests.Storage != "" {
+		if spec.Requests.Storage != "" && isPvc {
 			if q, err := resource.ParseQuantity(spec.Requests.Storage); err != nil {
 				log.Errorf("failed to parse storage resource %s to quantity: %v", spec.Requests.Storage, err)
 			} else {
@@ -200,16 +200,19 @@ func ResourceRequirement(spec v1alpha1.ContainerSpec) corev1.ResourceRequirement
 	}
 	if spec.Limits != nil {
 		if rr.Limits == nil {
+			if isPvc && spec.Limits.Storage == "" {
+				return rr
+			}
 			rr.Limits = make(map[corev1.ResourceName]resource.Quantity)
 		}
-		if spec.Limits.CPU != "" {
+		if spec.Limits.CPU != "" && isPvc == false {
 			if q, err := resource.ParseQuantity(spec.Limits.CPU); err != nil {
 				log.Errorf("failed to parse CPU resource %s to quantity: %v", spec.Limits.CPU, err)
 			} else {
 				rr.Limits[corev1.ResourceCPU] = q
 			}
 		}
-		if spec.Limits.Memory != "" {
+		if spec.Limits.Memory != "" && isPvc == false {
 			if q, err := resource.ParseQuantity(spec.Limits.Memory); err != nil {
 				log.Errorf("failed to parse memory resource %s to quantity: %v", spec.Limits.Memory, err)
 			} else {
@@ -217,7 +220,7 @@ func ResourceRequirement(spec v1alpha1.ContainerSpec) corev1.ResourceRequirement
 			}
 		}
 
-		if spec.Limits.Storage != "" {
+		if spec.Limits.Storage != "" && isPvc {
 			if q, err := resource.ParseQuantity(spec.Limits.Storage); err != nil {
 				log.Errorf("failed to parse storage resource %s to quantity: %v", spec.Limits.Storage, err)
 			} else {

@@ -178,7 +178,7 @@ func (dm *dashboardManager) getNewCodisDashboardStatefulSet(cc *v1alpha1.CodisCl
 							ImagePullPolicy: "IfNotPresent",
 							Command:         []string{"codis-dashboard"},
 							Args:            []string{"--$(COORDINATOR_NAME)", "$(COORDINATOR_ADDR)", "-c", "$(CODIS_PATH)/config/dashboard.toml", "--host-admin", "$(POD_IP):18080", "--product_name", "$(PRODUCT_NAME)", "--product_auth", cc.Spec.CodisDashboard.ProductAuth},
-							Resources:       utils.ResourceRequirement(cc.Spec.CodisDashboard.ContainerSpec),
+							Resources:       utils.ResourceRequirement(cc.Spec.CodisDashboard.ContainerSpec, false),
 							Env:             envVarList,
 							Ports:           []corev1.ContainerPort{{Name: "dashboard", ContainerPort: 18080}},
 						},

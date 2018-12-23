@@ -272,7 +272,7 @@ func (pm *proxyManager) getNewCodisProxyDeployment(cc *v1alpha1.CodisCluster) *a
 								{Name: "admin-port", ContainerPort: 11080},
 								{Name: "proxy-port", ContainerPort: 19000},
 							},
-							Resources: utils.ResourceRequirement(cc.Spec.CodisProxy.ContainerSpec),
+							Resources: utils.ResourceRequirement(cc.Spec.CodisProxy.ContainerSpec, false),
 						},
 					},
 				},
