@@ -39,6 +39,13 @@ spec:
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     partition: 0
     storageClassName: cbs
+    nodeSelector:
+      dedicated:codisCluster
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: codisCluster
+        effect: "NoSchedule"
   codisDashboard:
     replicas: 1
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
