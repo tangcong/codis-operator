@@ -378,10 +378,11 @@ func (pm *proxyManager) getNewCodisProxyService(cc *v1alpha1.CodisCluster) *core
 			Name:            pm.getSvcName(ccName),
 			Namespace:       ns,
 			Labels:          codisProxyLabels,
+			Annotations:     cc.Spec.CodisProxy.ServiceAnnotations,
 			OwnerReferences: []metav1.OwnerReference{utils.GetOwnerRef(cc)},
 		},
 		Spec: corev1.ServiceSpec{
-			Type: "NodePort",
+			Type: cc.Spec.CodisProxy.ServiceType,
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "proxy-port",

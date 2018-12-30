@@ -91,9 +91,11 @@ type CodisProxySpec struct {
 	//how many pods we can add at a time
 	MaxSurge int `json:"maxSurge,omitempty"`
 	//MaxUnavailable define how many pods can be unavailable during the rolling update
-	MaxUnavailable int                 `json:"maxUnavailable,omitempty"`
-	NodeSelector   map[string]string   `json:"nodeSelector,omitempty"`
-	Tolerations    []corev1.Toleration `json:"tolerations,omitempty"`
+	MaxUnavailable     int                 `json:"maxUnavailable,omitempty"`
+	NodeSelector       map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations        []corev1.Toleration `json:"tolerations,omitempty"`
+	ServiceType        corev1.ServiceType  `json:"serviceType"`
+	ServiceAnnotations map[string]string   `json:"serviceAnnotations,omitempty"`
 }
 
 // CodisServerSpec contains details of CodisServer member
@@ -118,7 +120,9 @@ type CodisDashboardSpec struct {
 // CodisFeSpec contains details of CodisFe
 type CodisFeSpec struct {
 	ContainerSpec
-	Replicas int32 `json:"replicas"`
+	Replicas           int32              `json:"replicas"`
+	ServiceType        corev1.ServiceType `json:"serviceType"`
+	ServiceAnnotations map[string]string  `json:"serviceAnnotations,omitempty"`
 }
 
 // SentinelSpec contains details of Sentinel

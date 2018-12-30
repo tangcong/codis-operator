@@ -43,8 +43,13 @@ spec:
                 replicas:
                   format: int32
                   type: integer
+                serviceAnnotations:
+                  type: object
+                serviceType:
+                  type: string
               required:
               - replicas
+              - serviceType
               type: object
             codisProxy:
               properties:
@@ -75,6 +80,10 @@ spec:
                 replicas:
                   format: int32
                   type: integer
+                serviceAnnotations:
+                  type: object
+                serviceType:
+                  type: string
                 sessionAuth:
                   type: string
                 tolerations:
@@ -84,6 +93,7 @@ spec:
               required:
               - replicas
               - sessionAuth
+              - serviceType
               type: object
             codisServer:
               properties:

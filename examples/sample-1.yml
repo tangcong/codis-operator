@@ -13,6 +13,7 @@ spec:
     replicas: 3
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     sessionAuth: session
+    serviceType: NodePort
     requests:
       cpu: 200m
       memory: 500Mi
@@ -37,6 +38,7 @@ spec:
   codisFe:
     replicas: 2
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+    serviceType: NodePort
   sentinel:
     replicas: 5
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest

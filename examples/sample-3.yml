@@ -13,6 +13,9 @@ spec:
     replicas: 3
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
     sessionAuth: session
+    serviceType: LoadBalancer 
+    serviceAnnotations:
+      service.kubernetes.io/qcloud-loadbalancer-internal-subnetid: subnet-xxxxxxxx
     requests:
       cpu: 200m
       memory: 200Mi
@@ -40,7 +43,7 @@ spec:
     partition: 0
     storageClassName: cbs
     nodeSelector:
-      dedicated:codisCluster
+      dedicated: codisCluster
     tolerations:
       - key: dedicated
         operator: Equal
@@ -53,6 +56,9 @@ spec:
   codisFe:
     replicas: 1
     image: ccr.ccs.tencentyun.com/codis/codis3.2:latest
+    serviceType: LoadBalancer 
+    serviceAnnotations:
+      service.kubernetes.io/qcloud-loadbalancer-internal-subnetid: subnet-xxxxxxxx
   sentinel:
     requests:
       cpu: 200m

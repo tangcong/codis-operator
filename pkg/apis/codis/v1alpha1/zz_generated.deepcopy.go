@@ -170,6 +170,13 @@ func (in *CodisDashboardStatus) DeepCopy() *CodisDashboardStatus {
 func (in *CodisFeSpec) DeepCopyInto(out *CodisFeSpec) {
 	*out = *in
 	in.ContainerSpec.DeepCopyInto(&out.ContainerSpec)
+	if in.ServiceAnnotations != nil {
+		in, out := &in.ServiceAnnotations, &out.ServiceAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -237,6 +244,13 @@ func (in *CodisProxySpec) DeepCopyInto(out *CodisProxySpec) {
 		*out = make([]corev1.Toleration, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.ServiceAnnotations != nil {
+		in, out := &in.ServiceAnnotations, &out.ServiceAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
 		}
 	}
 	return

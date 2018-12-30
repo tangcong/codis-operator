@@ -267,10 +267,11 @@ func (fm *feManager) getNewCodisFeService(cc *v1alpha1.CodisCluster) *corev1.Ser
 			Name:            fm.getSvcName(ccName),
 			Namespace:       ns,
 			Labels:          codisFeLabels,
+			Annotations:     cc.Spec.CodisFe.ServiceAnnotations,
 			OwnerReferences: []metav1.OwnerReference{utils.GetOwnerRef(cc)},
 		},
 		Spec: corev1.ServiceSpec{
-			Type: "NodePort",
+			Type: cc.Spec.CodisFe.ServiceType,
 			Ports: []corev1.ServicePort{
 				{
 					Name:       "fe-port",
