@@ -69,6 +69,10 @@ kubectl delete -f ./examples/sample-1.yml
 
 ### EXAMPLES
 
+reference linking: 
+
+https://github.com/tangcong/codis-operator/blob/master/examples/sample-3.yml
+
 * using pv(specifying storageClassName)
 
 * enabling hpa
@@ -81,21 +85,24 @@ kubectl delete -f ./examples/sample-1.yml
 
 * specifying scheduler policy(node selector/tolerations)
 
-reference linking: 
-
-https://github.com/tangcong/codis-operator/blob/master/examples/sample-3.yml
 
 ### To do List
 
 * monitor(proxy/redis)
 
-* dedicated scheduler server
-
-k8s do not know "codis group" conception, one group may have 2-N replicas, we want to make sure that every codis server pod which is in the same group be scheduled into different node, when one node crash/outage,we can promote other slave to master.
+* dedicated scheduler server(k8s do not know "codis group" conception, one group may have 2-N replicas, we want to make sure that every codis server pod which is in the same group be scheduled into different node, when one node crash/outage,we can promote other slave to master.)
 
 * make sure that drain node safely and automatically.
 
 * support helm
+
+* support local pv
+
+* add unit test
+
+* add e2e test
+
+* add chaos test
 
 ### SNAPSHOTS
 
