@@ -73,7 +73,7 @@ reference linking:
 
 https://github.com/tangcong/codis-operator/blob/master/examples/sample-3.yml
 
-* using pv(specifying storageClassName)
+* using network pv(specifying storageClassName)
 
 * enabling hpa
 
