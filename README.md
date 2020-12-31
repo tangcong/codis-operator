@@ -1,6 +1,6 @@
 # Codis-Operator
 
-Codis Operator creates and manages codis clusters running in kubernetes.(WIP)
+Codis Operator creates and manages codis clusters running in kubernetes.(Notice,It is not ready for production/Work In Progress)
 
 ## Advantages based on k8s
 
